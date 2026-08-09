@@ -415,3 +415,29 @@ def test_feedback_key_absent_when_not_done(client, all_candidates):
             f"'feedback' key should be completely absent on non-final turn, "
             f"but found: feedback={data2.get('feedback')}"
         )
+
+
+def test_feedback_day_titles_exact_match_curriculum(client, all_candidates, curriculum):
+    """Verifies that any 'Day N — <title>' in feedback.strengths/gaps/next
+    matches the official title in curriculum.json exactly."""
+    responses = _run_full_interview(client, all_candidates["CAND-001"], session_id="test-13")
+    final = responses[-1]
+    assert final["done"] is True
+    fb = final["feedback"]
+
+    curr_by_day = {d["day"]: d["title"] for d in curriculum["days"]}
+    pattern = re.compile(r"Day\s+(\d+)\s*[\u2014\-:]\s*([^:]+)")
+
+    for field in ("strengths", "gaps", "next"):
+        for item in fb.get(field, []):
+            match = pattern.search(item)
+            if match:
+                day_num = int(match.group(1))
+                found_title = match.group(2).strip()
+                if day_num in curr_by_day:
+                    expected_title = curr_by_day[day_num]
+                    assert found_title == expected_title, (
+                        f"Field '{field}' cited Day {day_num} with hallucinated title '{found_title}', "
+                        f"expected official title '{expected_title}'"
+                    )
+

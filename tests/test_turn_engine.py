@@ -334,3 +334,50 @@ def test_feedback_synthesizer_fallback_empty_buckets(sample_session):
         assert len(fb_struggling.next) == 1
         assert "Review Day 2 — Topic 2 objectives" in fb_struggling.next[0]
 
+
+def test_feedback_synthesizer_fallback_summary_matches_lists(sample_session):
+    """
+    Verifies that:
+      1. When evaluations are all 'partial' (0 strong, 0 missed), summary gaps count matches 4.
+      2. When there are 6 missed evaluations, summary count caps at 4 gaps identified (matching len(fb.gaps)).
+      3. When there are 6 strong evaluations, summary count caps at 5 strong responses (matching len(fb.strengths)).
+    """
+    # Case 1: Partial fallback (4 partials)
+    sample_session.evaluations = [
+        turn_engine.TurnEvaluation(
+            bucket="partial", rationale="Needed hint", covered_day=i, covered_title=f"Topic {i}"
+        ) for i in range(1, 5)
+    ]
+    sample_session.covered_days = {1, 2, 3, 4}
+
+    fb = feedback_synthesizer._deterministic_fallback(sample_session)
+    assert len(fb.gaps) == 4
+    assert "4 gaps identified" in fb.summary
+    assert "0 strong responses" in fb.summary
+
+    # Case 2: 6 missed evaluations (gaps array capped at 4)
+    sample_session.evaluations = [
+        turn_engine.TurnEvaluation(
+            bucket="missed", rationale="Struggled", covered_day=i, covered_title=f"Topic {i}"
+        ) for i in range(1, 7)
+    ]
+    sample_session.covered_days = {1, 2, 3, 4, 5, 6}
+
+    fb_missed = feedback_synthesizer._deterministic_fallback(sample_session)
+    assert len(fb_missed.gaps) == 4
+    assert "4 gaps identified" in fb_missed.summary
+
+    # Case 3: 6 strong evaluations (strengths array capped at 5)
+    sample_session.evaluations = [
+        turn_engine.TurnEvaluation(
+            bucket="strong", rationale="Excelled", covered_day=i, covered_title=f"Topic {i}"
+        ) for i in range(1, 7)
+    ]
+    sample_session.covered_days = {1, 2, 3, 4, 5, 6}
+
+    fb_strong = feedback_synthesizer._deterministic_fallback(sample_session)
+    assert len(fb_strong.strengths) == 5
+    assert "5 strong responses" in fb_strong.summary
+
+
+

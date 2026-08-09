@@ -164,16 +164,22 @@ Generate a structured feedback object as JSON with these exact fields:
 
 - "summary": 2-3 sentence overall assessment of interview performance.
 - "strengths": array of 3-5 specific strengths. Each MUST cite a specific Day
-  number and title, e.g. "Day 22 -- Multi-Agent Orchestration: clearly
+  number and exact title as given in the evaluations above, e.g. "Day 22 — Multi-Agent Orchestration: clearly
   explained router agent delegation patterns."
 - "gaps": array of 2-4 specific gaps. Each MUST cite a specific Day number
-  and title. Do NOT give generic advice -- cite what was actually missed.
+  and exact title as given in the evaluations above. Do NOT give generic advice -- cite what was actually missed.
 - "next": array of 2-4 actionable next steps. Each MUST reference a specific
-  Day number and suggest a concrete exercise, e.g. "Revisit Day 29
+  Day number and exact title, suggesting a concrete exercise, e.g. "Revisit Day 29 — Monitoring, Logging & Observability
   objectives: implement Prometheus metrics collection in a FastAPI app."
 
+CRITICAL TITLE RULE:
+Whenever citing any Day N in "strengths", "gaps", or "next", you MUST format it as:
+"Day <N> — <EXACT_OFFICIAL_TITLE>: <details>"
+You MUST use the EXACT OFFICIAL TITLE provided in the INTERVIEW EVALUATIONS above for that Day number.
+NEVER alter, paraphrase, or reconstruct a day title!
+
 RULES:
-- Every item in strengths/gaps/next MUST reference a specific Day number and title.
+- Every item in strengths/gaps/next MUST reference a specific Day number and exact title.
 - Do NOT invent tools or topics that were not covered in the interview.
 - Be encouraging but honest -- gaps are learning opportunities, not failures.
 - "next" steps must be concrete exercises, not vague recommendations like "study more"."""
