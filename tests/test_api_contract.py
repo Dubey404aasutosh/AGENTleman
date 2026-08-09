@@ -315,18 +315,15 @@ def test_skipped_mission_touched(client, all_candidates):
 
 
 def test_no_hallucinations(client, all_candidates, curriculum):
-    """#9: All tool/topic mentions in replies and feedback exist in curriculum.json and candidate's plan."""
-    # 1. Collect all valid tools from curriculum
-    valid_tools = {tool.lower() for day in curriculum["days"] for tool in day.get("tools", [])}
-
+    """#9: All day mentions in replies and feedback must belong to candidate's actual plan."""
     responses = _run_full_interview(client, all_candidates["CAND-001"], session_id="test-9")
 
-    # 2. Get the candidate's actual planned days from session store
+    # Get the candidate's actual planned days from session store
     session = session_store.get("test-9")
     assert session is not None
     planned_days = {t.day for t in session.plan}
 
-    # 3. Extract and validate all "Day \d+" mentions in replies and feedback against session.plan
+    # Extract and validate all "Day \d+" mentions in replies and feedback against session.plan
     day_pattern = re.compile(r"Day (\d+)")
 
     for i, resp in enumerate(responses):
@@ -345,13 +342,6 @@ def test_no_hallucinations(client, all_candidates, curriculum):
                         assert int(day_num) in planned_days, (
                             f"Feedback {field_name} cited Day {day_num} which is NOT in candidate's plan: {planned_days}"
                         )
-                    # Check tool mentions in feedback text against valid_tools
-                    for tool in valid_tools:
-                        if tool in item.lower():
-                            assert tool in valid_tools  # Grounded in curriculum tools
-
-    # 4. Verify tool assertions against curriculum tools
-    assert len(valid_tools) > 0
 
 
 def test_malformed_answer_survives(client, all_candidates):
