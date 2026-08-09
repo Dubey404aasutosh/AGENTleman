@@ -44,16 +44,19 @@ class LLMClient:
             is_quota = (isinstance(e, APIError) and getattr(e, "code", None) == 429) \
                        or "ResourceExhausted" in type(e).__name__ or "429" in str(e)
 
-            if is_quota and not session.using_fallback:
-                session.using_fallback = True                     # sticky (Decision #23)
-                try:
-                    return self.generate(system_prompt, messages, response_schema, session)
-                except Exception as fallback_e:
-                    raise LLMCallError(
-                        f"Both models exhausted. Primary: {e}. Fallback: {fallback_e}"
-                    ) from fallback_e
+            if is_quota:
+                if not session.using_fallback:
+                    session.using_fallback = True                     # sticky (Decision #23)
+                    try:
+                        return self.generate(system_prompt, messages, response_schema, session)
+                    except Exception as fallback_e:
+                        raise LLMCallError(
+                            f"Both models exhausted. Primary: {e}. Fallback: {fallback_e}"
+                        ) from fallback_e
+                else:
+                    raise LLMCallError(f"Both models exhausted quota: {e}")
 
-            # Non-quota error, or already on fallback → one retry, same model
+            # Non-quota error → one retry, same model
             try:
                 response = self.client.models.generate_content(model=model, contents=contents, config=config)
                 return json.loads(response.text)

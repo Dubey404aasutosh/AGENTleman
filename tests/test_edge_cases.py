@@ -273,3 +273,19 @@ def test_malformed_body_validation_handler(client):
     data2 = r2.json()
     assert isinstance(data2, dict)
     assert data2["error"] == "BAD_REQUEST"
+
+
+def test_value_error_500_handler(client, all_candidates):
+    """Verifies that an unhandled ValueError raised in route handler
+    (e.g., from planner invariant check) is caught by value_error_handler
+    and returns a clean 500 {error: 'INTERNAL_ERROR', detail: ...} dict."""
+    with patch("planner.build_plan", side_effect=ValueError("Planner invariant failed: insufficient topics")):
+        r = client.post("/api/interview", json={
+            "sessionId": "value-error-test",
+            "candidate": all_candidates["CAND-001"],
+        })
+        assert r.status_code == 500, f"Expected 500, got {r.status_code}: {r.text}"
+        data = r.json()
+        assert isinstance(data, dict)
+        assert data["error"] == "INTERNAL_ERROR"
+        assert "insufficient topics" in data["detail"]

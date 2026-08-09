@@ -225,9 +225,9 @@ def test_fallback_sticky(sample_session):
 
 def test_both_models_exhausted_raises_llm_call_error(sample_session):
     """
-    Verifies that when primary raises 429 AND fallback raises 429 (and retry fails),
+    Verifies that when primary raises 429 AND fallback raises 429,
     llm_client.generate cleanly raises LLMCallError('Both models exhausted...').
-    Traces exact 3-call sequence: Primary (429) -> Fallback (429) -> Fallback retry (429).
+    Traces exact 2-call sequence: Primary (429) -> Fallback (429) fail-fast.
     """
     client = llm_client.LLMClient(api_key="fake-key")
 
@@ -235,8 +235,8 @@ def test_both_models_exhausted_raises_llm_call_error(sample_session):
     fallback_error = APIError(429, {"error": {"code": 429, "message": "Fallback 429"}})
 
     with patch("google.genai.models.Models.generate_content") as mock_gen:
-        # Requires 3 side effects: Primary call + Fallback call + Fallback retry call
-        mock_gen.side_effect = [primary_error, fallback_error, fallback_error]
+        # Requires 2 side effects: Primary call + Fallback call (fails fast)
+        mock_gen.side_effect = [primary_error, fallback_error]
 
         with pytest.raises(llm_client.LLMCallError) as exc_info:
             client.generate(
@@ -248,13 +248,12 @@ def test_both_models_exhausted_raises_llm_call_error(sample_session):
 
         assert "Both models exhausted" in str(exc_info.value)
         assert sample_session.using_fallback is True
-        assert mock_gen.call_count == 3
+        assert mock_gen.call_count == 2
 
-        # Confirm call model sequence: Primary -> Fallback -> Fallback
+        # Confirm call model sequence: Primary -> Fallback (fails fast, 2 calls)
         models_called = [call.kwargs["model"] for call in mock_gen.call_args_list]
         assert models_called == [
             llm_client.PRIMARY_MODEL,
-            llm_client.FALLBACK_MODEL,
             llm_client.FALLBACK_MODEL,
         ]
 
