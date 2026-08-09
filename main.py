@@ -7,7 +7,11 @@ import json
 import os
 from contextlib import asynccontextmanager
 
+from dotenv import load_dotenv
+load_dotenv()
+
 from fastapi import FastAPI, HTTPException
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -38,6 +42,13 @@ async def http_exc_handler(request, exc):
     return JSONResponse(
         status_code=exc.status_code,
         content=exc.detail if isinstance(exc.detail, dict) else {"error": "ERROR", "detail": str(exc.detail)},
+    )
+
+@app.exception_handler(RequestValidationError)
+async def validation_error_handler(request, exc):
+    return JSONResponse(
+        status_code=400,
+        content={"error": "BAD_REQUEST", "detail": "Invalid request schema or missing required fields."},
     )
 
 @app.exception_handler(ValueError)

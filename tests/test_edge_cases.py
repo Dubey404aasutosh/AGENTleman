@@ -249,35 +249,19 @@ def test_error_response_is_dict(client):
         pass  # Good — it's a plain string, not JSON
 
 
-def test_malformed_body_422_observation(client):
-    """OBSERVATION (flagged, not fixed):
-
-    Missing required 'sessionId' field triggers a Pydantic RequestValidationError,
-    which falls through to FastAPI's default 422 handler instead of the custom
-    {error, detail} format.
-
-    The two custom exception handlers only catch HTTPException and ValueError.
-    A raw RequestValidationError is NOT caught, producing FastAPI's default 422
-    shape: {"detail": [{"type": "missing", "loc": [...], "msg": "Field required", ...}]}
-
-    This is intentionally NOT fixed here — documented for the user to decide
-    whether to patch before submission.
+def test_malformed_body_validation_handler(client):
+    """Verifies that missing required schema fields trigger our custom RequestValidationError
+    handler, returning clean 400 {error, detail} dicts rather than default FastAPI error lists.
     """
     # Case 1: Missing required sessionId field
     r = client.post("/api/interview", json={"message": "hello"})
-    assert r.status_code == 422, f"Expected 422, got {r.status_code}"
+    assert r.status_code == 400, f"Expected 400, got {r.status_code}"
     data = r.json()
 
-    # FastAPI's default 422 shape — NOT our custom {error, detail} format
+    assert isinstance(data, dict)
+    assert data["error"] == "BAD_REQUEST"
     assert "detail" in data
-    assert isinstance(data["detail"], list), (
-        f"Expected FastAPI's default list-of-errors format, got: {type(data['detail'])}"
-    )
-    # Confirm it does NOT have our custom "error" key
-    assert "error" not in data, (
-        "Unexpectedly found 'error' key — RequestValidationError should use "
-        "FastAPI's default handler, not our custom one"
-    )
+    assert isinstance(data["detail"], str)
 
     # Case 2: Completely invalid JSON body
     r2 = client.post(
@@ -285,7 +269,7 @@ def test_malformed_body_422_observation(client):
         content="this is not json",
         headers={"Content-Type": "application/json"},
     )
-    # FastAPI returns 422 for invalid JSON bodies as well
-    assert r2.status_code == 422
+    assert r2.status_code == 400
     data2 = r2.json()
-    assert "detail" in data2
+    assert isinstance(data2, dict)
+    assert data2["error"] == "BAD_REQUEST"
