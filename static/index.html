@@ -1,701 +1,892 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI Cohort Technical Interviewer — Claymorphism UI</title>
+  <title>AI Cohort — 31-Day AI Engineering Program</title>
+  
+  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            display: ['Outfit', 'sans-serif'],
+          },
+          colors: {
+            clay: {
+              bg: '#EEF2F6',
+              surface: '#F4F7FA',
+              purple: '#E2D9FF',
+              peach: '#FFE4D6',
+              mint: '#D1F5EA',
+              blue: '#D8EEFF',
+              lemon: '#FFF3C4',
+              rose: '#FFE0EB',
+              text: '#2D3748',
+              muted: '#64748B',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- React & Babel Standalone -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <!-- Framer Motion UMD -->
+  <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
   <style>
     :root {
-      --bg-color: #e4e9f2;
-      --clay-surface: #e4e9f2;
+      --clay-bg: #EEF2F6;
       --shadow-light: #ffffff;
-      --shadow-dark: #b8c4d8;
-      
-      --purple-clay: #dedaff;
-      --purple-dark: #4338ca;
-      --purple-shadow-dark: #b4aeed;
-      
-      --peach-clay: #ffe3d8;
-      --peach-dark: #9a3412;
-      --peach-shadow-dark: #e8bbae;
-
-      --green-clay: #dcfce7;
-      --green-dark: #15803d;
-      
-      --amber-clay: #fef3c7;
-      --amber-dark: #b45309;
-
-      --blue-clay: #e0f2fe;
-      --blue-dark: #0369a1;
-
-      --text-main: #2d3748;
-      --text-muted: #64748b;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      --shadow-dark: #c1c9d6;
     }
 
     body {
-      background-color: var(--bg-color);
-      color: var(--text-main);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 24px 16px;
+      background-color: var(--clay-bg);
+      color: #2D3748;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      overflow-x: hidden;
     }
 
-    .header-container {
-      width: 100%;
-      max-width: 900px;
-      margin-bottom: 24px;
-      text-align: center;
-    }
-
-    .clay-badge {
-      display: inline-block;
-      padding: 6px 16px;
-      background: var(--purple-clay);
-      color: var(--purple-dark);
-      border-radius: 20px;
-      font-weight: 700;
-      font-size: 0.85rem;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      box-shadow: 5px 5px 10px var(--shadow-dark), -5px -5px 10px var(--shadow-light);
-      margin-bottom: 12px;
-    }
-
-    h1 {
-      font-size: 2.2rem;
-      font-weight: 700;
-      color: #1e293b;
-      margin-bottom: 8px;
-    }
-
-    p.subtitle {
-      color: var(--text-muted);
-      font-size: 1.05rem;
-    }
-
-    .main-card {
-      width: 100%;
-      max-width: 900px;
-      background: var(--clay-surface);
-      border-radius: 32px;
-      padding: 28px;
-      box-shadow: 12px 12px 24px var(--shadow-dark), -12px -12px 24px var(--shadow-light),
-                  inset 2px 2px 4px rgba(255, 255, 255, 0.8), inset -2px -2px 4px rgba(0, 0, 0, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.6);
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
-
-    .controls-bar {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 16px;
-      align-items: center;
-      justify-content: space-between;
-      background: rgba(255, 255, 255, 0.3);
-      padding: 16px 20px;
-      border-radius: 24px;
-      box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light);
-    }
-
-    .picker-group {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      flex: 1;
-      min-width: 280px;
-    }
-
-    label {
-      font-weight: 600;
-      color: #334155;
-      font-size: 0.95rem;
-      white-space: nowrap;
-    }
-
-    select.clay-select {
-      width: 100%;
-      padding: 12px 18px;
-      border-radius: 20px;
-      border: none;
-      background: var(--clay-surface);
-      color: var(--text-main);
-      font-size: 0.95rem;
-      font-weight: 600;
-      outline: none;
-      cursor: pointer;
-      box-shadow: 6px 6px 12px var(--shadow-dark), -6px -6px 12px var(--shadow-light);
-      transition: all 0.2s ease;
-    }
-
-    select.clay-select:focus {
-      box-shadow: inset 3px 3px 6px var(--shadow-dark), inset -3px -3px 6px var(--shadow-light);
-    }
-
-    button.clay-btn {
-      padding: 12px 26px;
-      border-radius: 20px;
-      border: none;
-      font-size: 0.95rem;
-      font-weight: 700;
-      cursor: pointer;
-      outline: none;
-      transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.2s ease;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
-
-    button.clay-btn-primary {
-      background: linear-gradient(135deg, #6366f1, #4f46e5);
-      color: #ffffff;
-      box-shadow: 6px 6px 14px var(--shadow-dark), -6px -6px 14px var(--shadow-light);
-    }
-
-    button.clay-btn-primary:hover {
-      background: linear-gradient(135deg, #4f46e5, #4338ca);
-    }
-
-    button.clay-btn-primary:active {
-      transform: scale(0.96) translateY(2px);
-      box-shadow: inset 3px 3px 6px rgba(0, 0, 0, 0.25), inset -3px -3px 6px rgba(255, 255, 255, 0.2);
-    }
-
-    button.clay-btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      transform: none !important;
-      box-shadow: none !important;
-    }
-
-    .chat-box {
-      min-height: 420px;
-      max-height: 520px;
-      overflow-y: auto;
-      padding: 20px;
-      border-radius: 24px;
-      background: rgba(255, 255, 255, 0.25);
-      box-shadow: inset 5px 5px 12px var(--shadow-dark), inset -5px -5px 12px var(--shadow-light);
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      scroll-behavior: smooth;
-    }
-
-    .chat-bubble-wrapper {
-      display: flex;
-      flex-direction: column;
-      max-width: 82%;
-      animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-    }
-
-    @keyframes popIn {
-      0% { opacity: 0; transform: scale(0.92) translateY(10px); }
-      100% { opacity: 1; transform: scale(1) translateY(0); }
-    }
-
-    .chat-bubble-wrapper.interviewer {
-      align-self: flex-start;
-    }
-
-    .chat-bubble-wrapper.candidate {
-      align-self: flex-end;
-    }
-
-    .bubble-author {
-      font-size: 0.8rem;
-      font-weight: 700;
-      margin-bottom: 6px;
-      padding: 0 8px;
-    }
-
-    .interviewer .bubble-author {
-      color: var(--purple-dark);
-    }
-
-    .candidate .bubble-author {
-      color: var(--peach-dark);
-      text-align: right;
-    }
-
-    .chat-bubble {
-      padding: 16px 22px;
-      font-size: 1rem;
-      line-height: 1.55;
-      font-weight: 500;
-    }
-
-    .interviewer .chat-bubble {
-      background: var(--purple-clay);
-      color: #1e1b4b;
-      border-radius: 24px 24px 24px 8px;
-      box-shadow: 7px 7px 15px var(--purple-shadow-dark), -7px -7px 15px #ffffff,
-                  inset 2px 2px 4px #ffffff, inset -2px -2px 4px rgba(0, 0, 0, 0.05);
-    }
-
-    .candidate .chat-bubble {
-      background: var(--peach-clay);
-      color: #431407;
-      border-radius: 24px 24px 8px 24px;
-      box-shadow: 7px 7px 15px var(--peach-shadow-dark), -7px -7px 15px #ffffff,
-                  inset 2px 2px 4px #ffffff, inset -2px -2px 4px rgba(0, 0, 0, 0.05);
-    }
-
-    .typing-indicator {
-      display: none;
-      align-self: flex-start;
-      background: var(--purple-clay);
-      padding: 14px 20px;
-      border-radius: 24px 24px 24px 8px;
-      box-shadow: 6px 6px 12px var(--purple-shadow-dark), -6px -6px 12px #ffffff;
-      gap: 6px;
-      align-items: center;
-    }
-
-    .typing-indicator.active {
-      display: flex;
-    }
-
-    .dot {
-      width: 9px;
-      height: 9px;
-      background: var(--purple-dark);
-      border-radius: 50%;
-      animation: pulseBounce 1.4s infinite ease-in-out both;
-    }
-
-    .dot:nth-child(1) { animation-delay: -0.32s; }
-    .dot:nth-child(2) { animation-delay: -0.16s; }
-
-    @keyframes pulseBounce {
-      0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
-      40% { transform: scale(1.15); opacity: 1; }
-    }
-
-    .input-area {
-      display: flex;
-      gap: 14px;
-      align-items: flex-end;
-    }
-
-    textarea.clay-input {
-      flex: 1;
-      padding: 14px 20px;
-      border-radius: 24px;
-      border: none;
-      background: var(--clay-surface);
-      color: var(--text-main);
-      font-size: 0.98rem;
-      font-weight: 500;
-      resize: none;
-      height: 72px;
-      outline: none;
-      box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light);
-      transition: box-shadow 0.2s ease;
-    }
-
-    textarea.clay-input:focus {
-      box-shadow: inset 6px 6px 12px var(--shadow-dark), inset -6px -6px 12px var(--shadow-light);
-    }
-
-    /* Feedback Display Section */
-    .feedback-container {
-      display: none;
-      flex-direction: column;
-      gap: 20px;
-      animation: celebratoryPop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-    }
-
-    @keyframes celebratoryPop {
-      0% { opacity: 0; transform: scale(0.95) translateY(20px); }
-      100% { opacity: 1; transform: scale(1) translateY(0); }
-    }
-
-    .celebration-banner {
-      background: linear-gradient(135deg, #a78bfa, #818cf8);
-      color: #ffffff;
-      padding: 20px;
+    /* Claymorphism Base Styles */
+    .clay-card {
+      background: #F4F7FA;
       border-radius: 28px;
-      text-align: center;
-      box-shadow: 8px 8px 18px var(--shadow-dark), -8px -8px 18px var(--shadow-light);
+      box-shadow: 
+        12px 12px 24px var(--shadow-dark),
+        -12px -12px 24px var(--shadow-light),
+        inset 2px 2px 5px rgba(255, 255, 255, 0.9),
+        inset -2px -2px 5px rgba(0, 0, 0, 0.04);
+      border: 2px solid rgba(255, 255, 255, 0.8);
+      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease;
     }
 
-    .celebration-banner h2 {
-      font-size: 1.6rem;
+    .clay-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 
+        16px 16px 32px var(--shadow-dark),
+        -16px -16px 32px var(--shadow-light),
+        inset 2px 2px 6px rgba(255, 255, 255, 1),
+        inset -2px -2px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .clay-card:active {
+      transform: scale(0.97) translateY(0);
+      box-shadow: 
+        6px 6px 14px var(--shadow-dark),
+        -6px -6px 14px var(--shadow-light),
+        inset 4px 4px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    /* Clay Card Variant Colors */
+    .clay-purple {
+      background: #E6E0FF;
+      box-shadow: 12px 12px 24px #cbd0f0, -12px -12px 24px #ffffff, inset 2px 2px 4px rgba(255,255,255,0.9);
+    }
+    .clay-peach {
+      background: #FFE8DD;
+      box-shadow: 12px 12px 24px #e5cac0, -12px -12px 24px #ffffff, inset 2px 2px 4px rgba(255,255,255,0.9);
+    }
+    .clay-mint {
+      background: #D8F8EE;
+      box-shadow: 12px 12px 24px #b8dfd3, -12px -12px 24px #ffffff, inset 2px 2px 4px rgba(255,255,255,0.9);
+    }
+    .clay-blue {
+      background: #DEEFFF;
+      box-shadow: 12px 12px 24px #c2d8ee, -12px -12px 24px #ffffff, inset 2px 2px 4px rgba(255,255,255,0.9);
+    }
+    .clay-lemon {
+      background: #FFF5CE;
+      box-shadow: 12px 12px 24px #e3dab1, -12px -12px 24px #ffffff, inset 2px 2px 4px rgba(255,255,255,0.9);
+    }
+    .clay-rose {
+      background: #FFE4EE;
+      box-shadow: 12px 12px 24px #e5c8d4, -12px -12px 24px #ffffff, inset 2px 2px 4px rgba(255,255,255,0.9);
+    }
+
+    /* Clay Buttons */
+    .clay-btn-primary {
+      background: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%);
+      color: #ffffff;
+      border-radius: 9999px;
       font-weight: 700;
-      margin-bottom: 4px;
+      box-shadow: 
+        6px 6px 16px rgba(79, 70, 229, 0.35),
+        -4px -4px 12px rgba(255, 255, 255, 0.8),
+        inset 2px 2px 4px rgba(255, 255, 255, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .clay-btn-primary:hover {
+      transform: scale(1.04) translateY(-2px);
+      box-shadow: 
+        8px 8px 20px rgba(79, 70, 229, 0.45),
+        -4px -4px 14px rgba(255, 255, 255, 0.9),
+        inset 2px 2px 4px rgba(255, 255, 255, 0.5);
+    }
+    .clay-btn-primary:active {
+      transform: scale(0.96);
+      box-shadow: inset 3px 3px 6px rgba(0, 0, 0, 0.3);
     }
 
-    .feedback-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-    }
-
-    @media (max-width: 768px) {
-      .feedback-grid { grid-template-columns: 1fr; }
-    }
-
-    .feedback-card {
+    /* Glassmorphism Styles */
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.18);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.35);
       border-radius: 24px;
-      padding: 22px;
-      box-shadow: 8px 8px 18px var(--shadow-dark), -8px -8px 18px var(--shadow-light),
-                  inset 2px 2px 4px rgba(255, 255, 255, 0.8);
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
+      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
     }
 
-    .feedback-card.summary-card {
-      grid-column: 1 / -1;
-      background: var(--purple-clay);
+    .glass-nav {
+      background: rgba(238, 242, 246, 0.75);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.5);
     }
 
-    .feedback-card.strengths-card {
-      background: var(--green-clay);
+    .glass-card-dark {
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 24px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
     }
 
-    .feedback-card.gaps-card {
-      background: var(--amber-clay);
+    /* Idle floating animations fallback */
+    @keyframes floatSlow {
+      0%, 100% { transform: translateY(-4px); }
+      50% { transform: translateY(4px); }
+    }
+    @keyframes floatMedium {
+      0%, 100% { transform: translateY(3px); }
+      50% { transform: translateY(-5px); }
     }
 
-    .feedback-card.next-card {
-      grid-column: 1 / -1;
-      background: var(--blue-clay);
-    }
-
-    .card-title {
-      font-size: 1.1rem;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .summary-card .card-title { color: var(--purple-dark); }
-    .strengths-card .card-title { color: var(--green-dark); }
-    .gaps-card .card-title { color: var(--amber-dark); }
-    .next-card .card-title { color: var(--blue-dark); }
-
-    .feedback-list {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .feedback-list li {
-      padding: 10px 14px;
-      background: rgba(255, 255, 255, 0.7);
-      border-radius: 16px;
-      font-size: 0.95rem;
-      font-weight: 500;
-      box-shadow: 3px 3px 6px rgba(0,0,0,0.04);
-      line-height: 1.45;
+    /* Reduced Motion Accessibility */
+    @media (prefers-reduced-motion: reduce) {
+      *, ::before, ::after {
+        animation-delay: -1ms !important;
+        animation-duration: 1ms !important;
+        animation-iteration-count: 1 !important;
+        background-attachment: initial !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0s !important;
+        transition-delay: 0s !important;
+      }
+      .clay-card, .clay-btn-primary {
+        transform: none !important;
+      }
     }
   </style>
 </head>
 <body>
+  <div id="root"></div>
 
-  <div class="header-container">
-    <div class="clay-badge">Phase 6 Submission — Claymorphism UI</div>
-    <h1>AI Cohort Technical Interviewer</h1>
-    <p class="subtitle">Autonomous 10-turn AI agent evaluating candidate mission mastery.</p>
-  </div>
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+    const FramerMotion = window.Motion || window.FramerMotion;
+    const { motion, useScroll, useTransform, useSpring, AnimatePresence } = FramerMotion;
 
-  <div class="main-card">
-    
-    <!-- Controls / Candidate Selector -->
-    <div class="controls-bar">
-      <div class="picker-group">
-        <label for="candidateSelect">Select Candidate:</label>
-        <select id="candidateSelect" class="clay-select"></select>
-      </div>
-      <button id="startBtn" class="clay-btn clay-btn-primary" onclick="startInterview()">
-        Start Interview Session
-      </button>
-    </div>
+    // --- Custom SVG Icons for Clay Cards ---
+    const IconTooling = () => (
+      <svg className="w-8 h-8 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+      </svg>
+    );
 
-    <!-- Interactive Chat Window -->
-    <div id="chatBox" class="chat-box">
-      <div class="chat-bubble-wrapper interviewer">
-        <div class="bubble-author">AI Interviewer</div>
-        <div class="chat-bubble">
-          Welcome! Please select a candidate from the dropdown above and click "Start Interview Session" to begin the technical evaluation.
-        </div>
-      </div>
-    </div>
+    const IconVector = () => (
+      <svg className="w-8 h-8 text-purple-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <ellipse cx="12" cy="5" rx="9" ry="3"/>
+        <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
+        <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+        <circle cx="12" cy="12" r="2" fill="currentColor"/>
+      </svg>
+    );
 
-    <!-- Typing Indicator -->
-    <div id="typingIndicator" class="typing-indicator">
-      <div class="dot"></div>
-      <div class="dot"></div>
-      <div class="dot"></div>
-    </div>
+    const IconRAG = () => (
+      <svg className="w-8 h-8 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+        <circle cx="12" cy="10" r="3"/>
+        <path d="m14.5 12.5 2 2"/>
+      </svg>
+    );
 
-    <!-- User Input Area -->
-    <div class="input-area">
-      <textarea id="candidateAnswer" class="clay-input" placeholder="Type candidate's answer here..." disabled></textarea>
-      <button id="sendBtn" class="clay-btn clay-btn-primary" onclick="sendTurn()" disabled>
-        Send Answer
-      </button>
-    </div>
+    const IconAgent = () => (
+      <svg className="w-8 h-8 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="11" width="18" height="10" rx="3"/>
+        <circle cx="12" cy="5" r="2"/>
+        <path d="M12 7v4"/>
+        <line x1="8" y1="16" x2="8.01" y2="16" strokeWidth="3"/>
+        <line x1="16" y1="16" x2="16.01" y2="16" strokeWidth="3"/>
+      </svg>
+    );
 
-    <!-- Final Feedback Screen (Rendered upon done: true) -->
-    <div id="feedbackContainer" class="feedback-container">
-      <div class="celebration-banner">
-        <h2>🎉 Technical Interview Completed</h2>
-        <p>Comprehensive mission assessment synthesised below.</p>
-      </div>
-      
-      <div class="feedback-grid">
-        <!-- Summary Card -->
-        <div class="feedback-card summary-card">
-          <div class="card-title">📝 Executive Summary</div>
-          <p id="summaryText" style="font-weight: 500; line-height: 1.5;"></p>
-        </div>
+    const IconTuning = () => (
+      <svg className="w-8 h-8 text-amber-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <line x1="4" y1="21" x2="4" y2="14"/>
+        <line x1="4" y1="10" x2="4" y2="3"/>
+        <line x1="12" y1="21" x2="12" y2="12"/>
+        <line x1="12" y1="8" x2="12" y2="3"/>
+        <line x1="20" y1="21" x2="20" y2="16"/>
+        <line x1="20" y1="12" x2="20" y2="3"/>
+        <line x1="1" y1="14" x2="7" y2="14"/>
+        <line x1="9" y1="8" x2="15" y2="8"/>
+        <line x1="17" y1="16" x2="23" y2="16"/>
+      </svg>
+    );
 
-        <!-- Strengths Card -->
-        <div class="feedback-card strengths-card">
-          <div class="card-title">✅ Key Strengths</div>
-          <ul id="strengthsList" class="feedback-list"></ul>
-        </div>
+    const IconMultimodal = () => (
+      <svg className="w-8 h-8 text-pink-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M2 10v4"/>
+        <path d="M6 6v12"/>
+        <path d="M10 3v18"/>
+        <path d="M14 8v8"/>
+        <path d="M18 5v14"/>
+        <path d="M22 10v4"/>
+      </svg>
+    );
 
-        <!-- Gaps Card -->
-        <div class="feedback-card gaps-card">
-          <div class="card-title">⚠️ Knowledge Gaps</div>
-          <ul id="gapsList" class="feedback-list"></ul>
-        </div>
+    const IconGuardrails = () => (
+      <svg className="w-8 h-8 text-teal-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        <path d="m9 12 2 2 4-4"/>
+      </svg>
+    );
 
-        <!-- Recommended Next Steps -->
-        <div class="feedback-card next-card">
-          <div class="card-title">🎯 Recommended Next Steps</div>
-          <ul id="nextList" class="feedback-list"></ul>
-        </div>
-      </div>
-    </div>
+    const IconCapstone = () => (
+      <svg className="w-8 h-8 text-rose-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/>
+        <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-3.05 11a22.35 22.35 0 0 1-3.95 2z"/>
+        <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/>
+        <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/>
+      </svg>
+    );
 
-  </div>
+    // --- Main Application Component ---
+    function App() {
+      const { scrollY, scrollYProgress } = useScroll();
+      const scaleX = useSpring(scrollYProgress, { stiffness: 100, damping: 30, restDelta: 0.001 });
 
-  <script>
-    const CANDIDATES_DATA = [
-      { id: "CAND-001", name: "Sarah Johnson", jobRole: "Senior Data Engineer" },
-      { id: "CAND-002", name: "Alex Turner", jobRole: "Backend Software Engineer" },
-      { id: "CAND-003", name: "Emily Chen", jobRole: "AI Engineer" },
-      { id: "CAND-004", name: "David Miller", jobRole: "Business Analyst" },
-      { id: "CAND-005", name: "Michael Brown", jobRole: "DevOps Engineer" },
-      { id: "CAND-006", name: "Wendy Foster", jobRole: "Marketing Manager" },
-      { id: "CAND-007", name: "Ethan Brooks", jobRole: "Computer Science Intern" },
-      { id: "CAND-008", name: "Harold Whitfield", jobRole: "Distinguished Engineer" },
-      { id: "CAND-009", name: "Zara Ahmadi", jobRole: "AI Engineer" },
-      { id: "CAND-010", name: "Gerald Combs", jobRole: "IT Support Specialist" },
-      { id: "CAND-011", name: "Mia Alvarez", jobRole: "UX Researcher" },
-      { id: "CAND-012", name: "Chen Wei", jobRole: "Mobile App Developer" },
-      { id: "CAND-013", name: "Ravi Patel", jobRole: "Software Engineer" },
-      { id: "CAND-014", name: "Bethany Cole", jobRole: "HR Manager" },
-      { id: "CAND-015", name: "Noah Kim", jobRole: "Principal Architect" },
-      { id: "CAND-016", name: "Isabella Rossi", jobRole: "Software Engineer" },
-      { id: "CAND-017", name: "Tyler Brooks", jobRole: "Junior Developer" },
-      { id: "CAND-018", name: "Diane Foster", jobRole: "AI Engineer" },
-      { id: "CAND-019", name: "Frank DeLuca", jobRole: "Legacy Systems Engineer" },
-      { id: "CAND-020", name: "Priyanka Sharma", jobRole: "Software Engineer" }
-    ];
+      // Parallax bindings
+      const heroBgY = useTransform(scrollY, [0, 800], [0, 180]);
+      const heroTextY = useTransform(scrollY, [0, 800], [0, 40]);
+      const testimonialParallax1 = useTransform(scrollY, [1400, 2600], [30, -30]);
+      const testimonialParallax2 = useTransform(scrollY, [1400, 2600], [-20, 40]);
 
-    let currentSessionId = null;
-    let fullCandidatesRaw = [];
-
-    // Populate candidate dropdown
-    const selectElem = document.getElementById("candidateSelect");
-    CANDIDATES_DATA.forEach(c => {
-      const opt = document.createElement("option");
-      opt.value = c.id;
-      opt.textContent = `${c.id} — ${c.name} (${c.jobRole})`;
-      selectElem.appendChild(opt);
-    });
-
-    // Load full candidates JSON for full payload delivery
-    fetch("candidates.json")
-      .then(res => res.json())
-      .then(data => { fullCandidatesRaw = data.candidates; })
-      .catch(err => console.error("Could not pre-load candidates.json", err));
-
-    async function startInterview() {
-      const candidateId = selectElem.value;
-      const fullCand = fullCandidatesRaw.find(c => c.member.id === candidateId);
-      if (!fullCand) {
-        alert("Candidate payload loading... Please try again in a moment.");
-        return;
-      }
-
-      currentSessionId = "session-" + candidateId + "-" + Date.now();
-
-      // UI Reset
-      const chatBox = document.getElementById("chatBox");
-      chatBox.innerHTML = "";
-      document.getElementById("feedbackContainer").style.display = "none";
-      document.getElementById("candidateAnswer").disabled = true;
-      document.getElementById("sendBtn").disabled = true;
-      showTyping(true);
-
-      try {
-        const res = await fetch("/api/interview", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            sessionId: currentSessionId,
-            candidate: fullCand
-          })
-        });
-
-        const data = await res.json();
-        showTyping(false);
-
-        if (res.ok) {
-          appendMessage("interviewer", "AI Interviewer", data.reply);
-          document.getElementById("candidateAnswer").disabled = false;
-          document.getElementById("sendBtn").disabled = false;
-          document.getElementById("candidateAnswer").focus();
-        } else {
-          appendMessage("interviewer", "System Error", "Error starting interview: " + JSON.stringify(data));
+      // Modules Data
+      const modules = [
+        {
+          id: 1,
+          title: "Environment & Tooling",
+          days: "Days 1–4",
+          desc: "Master Rye/UV package management, async Python patterns, and telemetry setup.",
+          icon: <IconTooling />,
+          clayClass: "clay-blue",
+          tagBg: "bg-blue-200 text-blue-800"
+        },
+        {
+          id: 2,
+          title: "Embeddings & Vector DBs",
+          days: "Days 5–8",
+          desc: "HNSW indexes, dense/sparse hybrid search with Qdrant and pgvector.",
+          icon: <IconVector />,
+          clayClass: "clay-purple",
+          tagBg: "bg-purple-200 text-purple-800"
+        },
+        {
+          id: 3,
+          title: "RAG & Context Engineering",
+          days: "Days 9–12",
+          desc: "Chunking strategies, Cohere re-ranking, parent-document retrieval & Ragas eval.",
+          icon: <IconRAG />,
+          clayClass: "clay-peach",
+          tagBg: "bg-orange-200 text-orange-800"
+        },
+        {
+          id: 4,
+          title: "Agentic AI & MCP Protocol",
+          days: "Days 13–17",
+          desc: "Build autonomous agents using Model Context Protocol (MCP) & state graphs.",
+          icon: <IconAgent />,
+          clayClass: "clay-mint",
+          tagBg: "bg-emerald-200 text-emerald-800"
+        },
+        {
+          id: 5,
+          title: "Fine-Tuning & Quantization",
+          days: "Days 18–21",
+          desc: "PEFT/LoRA tuning, Unsloth optimization, GGUF export for local Ollama runtimes.",
+          icon: <IconTuning />,
+          clayClass: "clay-lemon",
+          tagBg: "bg-amber-200 text-amber-900"
+        },
+        {
+          id: 6,
+          title: "Multimodal LLMs & Voice",
+          days: "Days 22–25",
+          desc: "Realtime WebSocket streaming with Whisper, Gemini Live & ElevenLabs.",
+          icon: <IconMultimodal />,
+          clayClass: "clay-rose",
+          tagBg: "bg-pink-200 text-pink-800"
+        },
+        {
+          id: 7,
+          title: "Production Ops & Safety",
+          days: "Days 26–28",
+          desc: "Rate limiting, prompt injection defense, cost routing & structured schemas.",
+          icon: <IconGuardrails />,
+          clayClass: "clay-blue",
+          tagBg: "bg-sky-200 text-sky-800"
+        },
+        {
+          id: 8,
+          title: "Capstone: AI Interviewer",
+          days: "Days 29–31",
+          desc: "Deploy a full voice-enabled autonomous candidate evaluator with live scoring.",
+          icon: <IconCapstone />,
+          clayClass: "clay-purple",
+          tagBg: "bg-indigo-200 text-indigo-900"
         }
-      } catch (err) {
-        showTyping(false);
-        appendMessage("interviewer", "System Error", "Network error starting interview: " + err.message);
-      }
+      ];
+
+      return (
+        <div className="relative min-h-screen selection:bg-indigo-500 selection:text-white">
+          
+          {/* Glass Navbar */}
+          <header className="fixed top-0 left-0 right-0 z-50 glass-nav transition-all duration-300">
+            <motion.div 
+              className="h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 origin-left"
+              style={{ scaleX }}
+            />
+            <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+              
+              {/* Logo */}
+              <a href="#" className="flex items-center gap-3 group">
+                <div className="w-11 h-11 clay-purple flex items-center justify-center rounded-2xl shadow-md group-hover:scale-105 transition-transform">
+                  <span className="font-display font-black text-xl text-indigo-700">AI</span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="font-display font-extrabold text-xl tracking-tight text-slate-800">
+                    AI COHORT
+                  </span>
+                  <span className="text-[10px] font-bold tracking-widest text-indigo-600 uppercase">
+                    31-Day Engineering
+                  </span>
+                </div>
+              </a>
+
+              {/* Desktop Nav Links */}
+              <nav className="hidden md:flex items-center gap-8 font-medium text-sm text-slate-600">
+                <a href="#stats" className="hover:text-indigo-600 transition-colors">Overview</a>
+                <a href="#curriculum" className="hover:text-indigo-600 transition-colors">Curriculum</a>
+                <a href="#how-it-works" className="hover:text-indigo-600 transition-colors">How It Works</a>
+                <a href="#testimonials" className="hover:text-indigo-600 transition-colors">Stories</a>
+              </nav>
+
+              {/* CTA Button */}
+              <a href="#enroll" className="clay-btn-primary px-6 py-2.5 text-sm flex items-center gap-2">
+                <span>Enroll Now</span>
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
+              </a>
+            </div>
+          </header>
+
+          {/* Hero Section with Parallax Background */}
+          <section className="relative pt-32 pb-24 md:pt-40 md:pb-36 overflow-hidden bg-gradient-to-b from-indigo-900 via-indigo-950 to-slate-950 text-white">
+            
+            {/* Parallax Layer 1: SVG Blobs & Shapes */}
+            <motion.div 
+              style={{ y: heroBgY }}
+              className="absolute inset-0 pointer-events-none opacity-40"
+            >
+              <svg className="w-full h-full" viewBox="0 0 1440 900" fill="none">
+                <circle cx="200" cy="200" r="300" fill="url(#grad1)" />
+                <circle cx="1200" cy="500" r="250" fill="url(#grad2)" />
+                <path d="M-100 600 Q 350 300 800 700 T 1600 400" stroke="rgba(255,255,255,0.15)" strokeWidth="4" strokeDasharray="12 12" />
+                <defs>
+                  <radialGradient id="grad1" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(200 200) scale(300)">
+                    <stop stopColor="#6366F1" stopOpacity="0.8" />
+                    <stop offset="1" stopColor="#4F46E5" stopOpacity="0" />
+                  </radialGradient>
+                  <radialGradient id="grad2" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1200 500) scale(250)">
+                    <stop stopColor="#EC4899" stopOpacity="0.7" />
+                    <stop offset="1" stopColor="#8B5CF6" stopOpacity="0" />
+                  </radialGradient>
+                </defs>
+              </svg>
+            </motion.div>
+
+            {/* Parallax Layer 2: Floating 3D Nodes */}
+            <div className="absolute inset-0 pointer-events-none">
+              <motion.div 
+                animate={{ y: [-10, 10, -10], rotate: [0, 5, 0] }}
+                transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute top-1/4 left-10 w-16 h-16 glass-panel rounded-3xl flex items-center justify-center shadow-2xl border border-white/20 hidden lg:flex"
+              >
+                <span className="text-2xl">⚡</span>
+              </motion.div>
+              <motion.div 
+                animate={{ y: [12, -12, 12], rotate: [0, -6, 0] }}
+                transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+                className="absolute bottom-1/3 right-12 w-20 h-20 glass-panel rounded-3xl flex items-center justify-center shadow-2xl border border-white/20 hidden lg:flex"
+              >
+                <span className="text-3xl">🤖</span>
+              </motion.div>
+            </div>
+
+            {/* Foreground Content */}
+            <motion.div 
+              style={{ y: heroTextY }}
+              className="max-w-5xl mx-auto px-6 text-center relative z-10"
+            >
+              {/* Badge */}
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-panel text-indigo-200 text-xs md:text-sm font-semibold tracking-wide mb-8 border border-indigo-400/30"
+              >
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span>Cohort #4 Enrolling Now • September 2026 Batch</span>
+              </motion.div>
+
+              {/* Playful Headline */}
+              <motion.h1 
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.7, delay: 0.1 }}
+                className="font-display font-extrabold text-4xl sm:text-6xl lg:text-7xl tracking-tight text-white leading-[1.1] mb-6"
+              >
+                Build the <span className="bg-clip-text text-transparent bg-gradient-to-r from-yellow-300 via-pink-400 to-purple-300">interviewer</span>, <br className="hidden sm:block"/>
+                not the interview.
+              </motion.h1>
+
+              {/* Subhead */}
+              <motion.p 
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.7, delay: 0.2 }}
+                className="text-lg sm:text-xl text-slate-300 max-w-2xl mx-auto mb-10 leading-relaxed font-normal"
+              >
+                Stop solving trivial LeetCode. Spend 31 days constructing production autonomous AI agents, multi-modal voice loops, and custom MCP tools.
+              </motion.p>
+
+              {/* Glassmorphism Hero CTA Panel */}
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+                className="glass-panel p-6 sm:p-8 max-w-xl mx-auto border border-white/20 shadow-2xl backdrop-blur-xl"
+              >
+                <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                  <a href="#enroll" className="w-full sm:w-auto clay-btn-primary px-8 py-4 text-base font-bold flex items-center justify-center gap-3">
+                    <span>Start Learning</span>
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                    </svg>
+                  </a>
+                  <a href="#curriculum" className="w-full sm:w-auto px-8 py-4 text-base font-bold text-white glass-panel hover:bg-white/20 transition-all rounded-full flex items-center justify-center border border-white/30">
+                    See Curriculum
+                  </a>
+                </div>
+
+                <div className="mt-5 pt-4 border-t border-white/10 flex items-center justify-center gap-6 text-xs text-indigo-200">
+                  <span className="flex items-center gap-1.5">
+                    <svg className="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+                    </svg>
+                    31 Daily Sprints
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <svg className="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+                    </svg>
+                    Live Code Reviews
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <svg className="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+                    </svg>
+                    Deploy Real Apps
+                  </span>
+                </div>
+              </motion.div>
+
+            </motion.div>
+          </section>
+
+          {/* Stats Bar (Claymorphism Cards with Staggered Fade) */}
+          <section id="stats" className="py-16 px-6 max-w-7xl mx-auto -mt-10 relative z-20">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+              
+              {[
+                { number: "31 Days", label: "Intensive Sprints", bg: "clay-blue", color: "text-blue-700" },
+                { number: "8 Modules", label: "Full-Stack AI Syllabus", bg: "clay-purple", color: "text-purple-700" },
+                { number: "20+ Projects", label: "Production Micro-Apps", bg: "clay-peach", color: "text-orange-700" },
+                { number: "98% Finish", label: "Cohort Completion Rate", bg: "clay-mint", color: "text-emerald-700" }
+              ].map((stat, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 30, scale: 0.9 }}
+                  whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                  viewport={{ once: true, margin: "-50px" }}
+                  transition={{ duration: 0.5, delay: idx * 0.1 }}
+                  className={`clay-card ${stat.bg} p-6 sm:p-8 text-center flex flex-col items-center justify-center cursor-pointer`}
+                >
+                  <span className={`font-display font-extrabold text-3xl sm:text-4xl ${stat.color} mb-1 tracking-tight`}>
+                    {stat.number}
+                  </span>
+                  <span className="text-xs sm:text-sm font-semibold text-slate-600 uppercase tracking-wider">
+                    {stat.label}
+                  </span>
+                </motion.div>
+              ))}
+
+            </div>
+          </section>
+
+          {/* Course Catalog Preview (Claymorphism Grid with Staggered Idle Float) */}
+          <section id="curriculum" className="py-20 px-6 max-w-7xl mx-auto">
+            <div className="text-center max-w-3xl mx-auto mb-16">
+              <span className="clay-card clay-purple px-4 py-1.5 text-xs font-bold text-purple-800 tracking-widest uppercase inline-block mb-3">
+                Curriculum Breakdown
+              </span>
+              <h2 className="font-display font-extrabold text-3xl sm:text-5xl text-slate-900 tracking-tight mb-4">
+                From Raw APIs to Autonomous Agents
+              </h2>
+              <p className="text-slate-600 text-base sm:text-lg">
+                8 battle-tested modules designed by senior AI staff engineers. Every single module concludes with a functional, deployed portfolio piece.
+              </p>
+            </div>
+
+            {/* Course Cards Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+              {modules.map((m, i) => (
+                <motion.div
+                  key={m.id}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-40px" }}
+                  transition={{ duration: 0.5, delay: (i % 4) * 0.1 }}
+                >
+                  <motion.div
+                    animate={{ y: i % 2 === 0 ? [-4, 4, -4] : [4, -4, 4] }}
+                    transition={{ duration: 3.5 + (i % 3) * 0.5, repeat: Infinity, ease: "easeInOut" }}
+                    className={`clay-card ${m.clayClass} p-7 h-full flex flex-col justify-between group cursor-pointer`}
+                  >
+                    <div>
+                      <div className="flex items-center justify-between mb-5">
+                        <div className="p-3 rounded-2xl bg-white/70 shadow-sm group-hover:scale-110 transition-transform">
+                          {m.icon}
+                        </div>
+                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${m.tagBg}`}>
+                          {m.days}
+                        </span>
+                      </div>
+
+                      <h3 className="font-display font-bold text-xl text-slate-800 mb-2 leading-snug">
+                        {m.title}
+                      </h3>
+
+                      <p className="text-slate-600 text-sm leading-relaxed mb-6 font-normal">
+                        {m.desc}
+                      </p>
+                    </div>
+
+                    <div className="pt-4 border-t border-black/5 flex items-center justify-between text-xs font-bold text-slate-700 group-hover:text-indigo-600 transition-colors">
+                      <span>Module Details</span>
+                      <svg className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  </motion.div>
+                </motion.div>
+              ))}
+            </div>
+          </section>
+
+          {/* "How It Works" Narrative Section with SVG Path-Draw Scroll Trigger */}
+          <section id="how-it-works" className="py-24 px-6 max-w-6xl mx-auto relative">
+            <div className="text-center max-w-2xl mx-auto mb-20">
+              <span className="clay-card clay-peach px-4 py-1.5 text-xs font-bold text-orange-800 tracking-widest uppercase inline-block mb-3">
+                Learning Journey
+              </span>
+              <h2 className="font-display font-extrabold text-3xl sm:text-5xl text-slate-900 tracking-tight mb-4">
+                How You Transform in 31 Days
+              </h2>
+              <p className="text-slate-600 text-base sm:text-lg">
+                A daily rhythm engineered for deep comprehension, deliberate practice, and real-world execution.
+              </p>
+            </div>
+
+            {/* Timeline Steps Container */}
+            <div className="relative">
+              
+              {/* Vertical Animated SVG Connecting Path (Desktop) */}
+              <div className="hidden md:block absolute left-1/2 top-10 bottom-10 w-2 -translate-x-1/2 pointer-events-none z-0">
+                <svg className="w-full h-full overflow-visible" preserveAspectRatio="none">
+                  <path 
+                    d="M 0 0 V 850" 
+                    stroke="#CBD5E1" 
+                    strokeWidth="4" 
+                    strokeDasharray="8 8" 
+                  />
+                  <motion.path
+                    d="M 0 0 V 850"
+                    stroke="#6366F1"
+                    strokeWidth="6"
+                    strokeLinecap="round"
+                    style={{ pathLength: scrollYProgress }}
+                  />
+                </svg>
+              </div>
+
+              {/* 4 Step Narrative Cards */}
+              <div className="space-y-16 relative z-10">
+                
+                {[
+                  {
+                    step: "01",
+                    title: "Learn Core Concepts",
+                    desc: "30-minute high-density video teardowns every morning covering architecture patterns, embeddings math, and agent loops.",
+                    bg: "clay-blue",
+                    icon: "📚",
+                    side: "left"
+                  },
+                  {
+                    step: "02",
+                    title: "Build Production Code",
+                    desc: "Implement hands-on code repos with Rye, FastAPI, and Qdrant. No copy-paste snippets; pure unguided problem solving.",
+                    bg: "clay-mint",
+                    icon: "⚡",
+                    side: "right"
+                  },
+                  {
+                    step: "03",
+                    title: "Get Interviewed by AI Agent",
+                    desc: "Put your code to the test. Your capstone project will be live-interrogated by an autonomous AI voice evaluator.",
+                    bg: "clay-purple",
+                    icon: "🎙️",
+                    side: "left"
+                  },
+                  {
+                    step: "04",
+                    title: "Receive Instant Feedback",
+                    desc: "Get automated rubrics on code cleanliness, latency optimization, cost management, and system resilience.",
+                    bg: "clay-peach",
+                    icon: "🎯",
+                    side: "right"
+                  }
+                ].map((s, idx) => (
+                  <motion.div 
+                    key={idx}
+                    initial={{ opacity: 0, x: s.side === "left" ? -50 : 50 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true, margin: "-60px" }}
+                    transition={{ duration: 0.6, delay: 0.1 }}
+                    className={`flex flex-col md:flex-row items-center ${s.side === "right" ? "md:flex-row-reverse" : ""} justify-between gap-8`}
+                  >
+                    {/* Card Content */}
+                    <div className="w-full md:w-[45%]">
+                      <div className={`clay-card ${s.bg} p-8 relative overflow-hidden group`}>
+                        <div className="flex items-center justify-between mb-4">
+                          <span className="text-4xl">{s.icon}</span>
+                          <span className="font-display font-black text-3xl text-indigo-900/20 group-hover:text-indigo-600/40 transition-colors">
+                            {s.step}
+                          </span>
+                        </div>
+                        <h3 className="font-display font-bold text-2xl text-slate-800 mb-3">
+                          {s.title}
+                        </h3>
+                        <p className="text-slate-600 text-sm leading-relaxed">
+                          {s.desc}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Central Indicator Node */}
+                    <div className="w-12 h-12 rounded-full clay-card clay-purple hidden md:flex items-center justify-center text-indigo-700 font-bold z-10 shadow-lg">
+                      {idx + 1}
+                    </div>
+
+                    {/* Spacer for 2-column layout */}
+                    <div className="w-full md:w-[45%] hidden md:block" />
+                  </motion.div>
+                ))}
+
+              </div>
+            </div>
+          </section>
+
+          {/* Testimonial / Social Proof Strip (Glassmorphism over Gradient Parallax) */}
+          <section id="testimonials" className="py-24 px-6 bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900 text-white relative overflow-hidden">
+            
+            {/* Ambient Background Glows */}
+            <div className="absolute top-0 left-1/4 w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-pink-500/20 rounded-full blur-3xl pointer-events-none" />
+
+            <div className="max-w-7xl mx-auto relative z-10">
+              <div className="text-center max-w-2xl mx-auto mb-16">
+                <span className="inline-block px-4 py-1.5 rounded-full glass-panel text-xs font-bold text-purple-200 tracking-widest uppercase mb-3 border border-white/20">
+                  Proof & Feedback
+                </span>
+                <h2 className="font-display font-extrabold text-3xl sm:text-5xl text-white tracking-tight mb-4">
+                  Built by Engineers, Loved by Builders
+                </h2>
+                <p className="text-purple-200 text-base sm:text-lg">
+                  See what our alumni have to say about transitioning from traditional software to AI engineering.
+                </p>
+              </div>
+
+              {/* 3 Glassmorphic Quote Cards with Parallax Drift */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                
+                {[
+                  {
+                    quote: "The hands-on MCP module alone saved our engineering team weeks of trial and error. Best investment I made this year.",
+                    author: "Alex Rivera",
+                    role: "Staff AI Engineer @ Vercel",
+                    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80",
+                    parallaxStyle: testimonialParallax1
+                  },
+                  {
+                    quote: "Building an actual autonomous AI interviewer gave me the confidence to land senior ML engineer roles instantly.",
+                    author: "Priya Sharma",
+                    role: "AI Tech Lead @ Scale AI",
+                    avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=120&q=80",
+                    parallaxStyle: testimonialParallax2
+                  },
+                  {
+                    quote: "The dual clay/glass design language of the project work was top tier. The daily code reviews were brutally effective.",
+                    author: "Jordan Chen",
+                    role: "Founder @ AgentFlow",
+                    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80",
+                    parallaxStyle: testimonialParallax1
+                  }
+                ].map((t, idx) => (
+                  <motion.div
+                    key={idx}
+                    style={{ y: t.parallaxStyle }}
+                    initial={{ opacity: 0, y: 40 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.6, delay: idx * 0.15 }}
+                    className="glass-card-dark p-8 flex flex-col justify-between border border-white/20 hover:border-white/40 transition-colors"
+                  >
+                    <div>
+                      {/* Quote Mark */}
+                      <div className="text-4xl text-purple-400 font-serif mb-4">“</div>
+                      <p className="text-slate-200 text-sm sm:text-base leading-relaxed mb-8">
+                        {t.quote}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-4 pt-4 border-t border-white/10">
+                      <img 
+                        src={t.avatar} 
+                        alt={t.author} 
+                        className="w-12 h-12 rounded-full object-cover border-2 border-indigo-400/50"
+                      />
+                      <div>
+                        <h4 className="font-bold text-sm text-white">{t.author}</h4>
+                        <p className="text-xs text-purple-300">{t.role}</p>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+
+              </div>
+            </div>
+          </section>
+
+          {/* Final CTA & Footer Section */}
+          <section id="enroll" className="py-24 px-6 max-w-5xl mx-auto">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="clay-card clay-purple p-10 sm:p-16 text-center relative overflow-hidden border-2 border-white"
+            >
+              {/* Glass Inner Card Overlay */}
+              <div className="glass-panel p-8 sm:p-12 max-w-3xl mx-auto border border-indigo-300/40">
+                <span className="px-4 py-1.5 rounded-full bg-indigo-600 text-white font-bold text-xs uppercase tracking-widest inline-block mb-4">
+                  Limited Enrollment
+                </span>
+                <h2 className="font-display font-extrabold text-3xl sm:text-5xl text-slate-900 tracking-tight mb-4">
+                  Master AI Engineering in 31 Days
+                </h2>
+                <p className="text-slate-600 text-base sm:text-lg mb-8 max-w-xl mx-auto">
+                  Join 50 ambitious engineers. Build 20+ production AI projects. Get live feedback from industry mentors.
+                </p>
+
+                <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                  <button onClick={() => alert('Welcome to AI Cohort! Registration opening soon.')} className="w-full sm:w-auto clay-btn-primary px-10 py-4 text-base font-bold flex items-center justify-center gap-3">
+                    <span>Reserve Your Spot ($499)</span>
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg>
+                  </button>
+                </div>
+
+                <p className="text-xs font-semibold text-slate-500 mt-4">
+                  🔒 100% Money-Back Guarantee during Week 1
+                </p>
+              </div>
+            </motion.div>
+          </section>
+
+          {/* Simple Footer */}
+          <footer className="py-12 border-t border-slate-300/60 text-center text-xs text-slate-500 font-medium">
+            <div className="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 clay-purple flex items-center justify-center rounded-xl font-bold text-indigo-700 text-xs">
+                  AI
+                </div>
+                <span className="font-display font-extrabold text-slate-700 tracking-tight text-sm">
+                  AI COHORT
+                </span>
+              </div>
+
+              <p>© 2026 AI Cohort Inc. Built with Claymorphism & Glassmorphism design systems.</p>
+
+              <div className="flex items-center gap-6">
+                <a href="#" className="hover:text-indigo-600 transition-colors">Privacy Policy</a>
+                <a href="#" className="hover:text-indigo-600 transition-colors">Terms of Service</a>
+                <a href="#" className="hover:text-indigo-600 transition-colors">Contact Us</a>
+              </div>
+            </div>
+          </footer>
+
+        </div>
+      );
     }
 
-    async function sendTurn() {
-      const answerInput = document.getElementById("candidateAnswer");
-      const answer = answerInput.value.trim();
-      if (!answer || !currentSessionId) return;
-
-      appendMessage("candidate", "Candidate", answer);
-      answerInput.value = "";
-      answerInput.disabled = true;
-      document.getElementById("sendBtn").disabled = true;
-      showTyping(true);
-
-      try {
-        const res = await fetch("/api/interview", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            sessionId: currentSessionId,
-            message: answer
-          })
-        });
-
-        const data = await res.json();
-        showTyping(false);
-
-        if (res.ok) {
-          appendMessage("interviewer", "AI Interviewer", data.reply);
-
-          if (data.done) {
-            // Render clay-styled feedback screen
-            renderFeedback(data.feedback);
-          } else {
-            answerInput.disabled = false;
-            document.getElementById("sendBtn").disabled = false;
-            answerInput.focus();
-          }
-        } else {
-          appendMessage("interviewer", "System Error", "Error on turn: " + JSON.stringify(data));
-          answerInput.disabled = false;
-          document.getElementById("sendBtn").disabled = false;
-        }
-      } catch (err) {
-        showTyping(false);
-        appendMessage("interviewer", "System Error", "Network error sending answer: " + err.message);
-        answerInput.disabled = false;
-        document.getElementById("sendBtn").disabled = false;
-      }
-    }
-
-    function appendMessage(role, author, text) {
-      const chatBox = document.getElementById("chatBox");
-      const wrapper = document.createElement("div");
-      wrapper.className = `chat-bubble-wrapper ${role}`;
-
-      const authorDiv = document.createElement("div");
-      authorDiv.className = "bubble-author";
-      authorDiv.textContent = author;
-
-      const bubbleDiv = document.createElement("div");
-      bubbleDiv.className = "chat-bubble";
-      bubbleDiv.textContent = text;
-
-      wrapper.appendChild(authorDiv);
-      wrapper.appendChild(bubbleDiv);
-      chatBox.appendChild(wrapper);
-      chatBox.scrollTop = chatBox.scrollHeight;
-    }
-
-    function showTyping(show) {
-      const indicator = document.getElementById("typingIndicator");
-      if (show) {
-        indicator.classList.add("active");
-      } else {
-        indicator.classList.remove("active");
-      }
-      const chatBox = document.getElementById("chatBox");
-      chatBox.scrollTop = chatBox.scrollHeight;
-    }
-
-    function renderFeedback(feedback) {
-      if (!feedback) return;
-      
-      document.getElementById("summaryText").textContent = feedback.summary || "N/A";
-      
-      const strengthsList = document.getElementById("strengthsList");
-      strengthsList.innerHTML = "";
-      (feedback.strengths || []).forEach(item => {
-        const li = document.createElement("li");
-        li.textContent = item;
-        strengthsList.appendChild(li);
-      });
-
-      const gapsList = document.getElementById("gapsList");
-      gapsList.innerHTML = "";
-      (feedback.gaps || []).forEach(item => {
-        const li = document.createElement("li");
-        li.textContent = item;
-        gapsList.appendChild(li);
-      });
-
-      const nextList = document.getElementById("nextList");
-      nextList.innerHTML = "";
-      (feedback.next || []).forEach(item => {
-        const li = document.createElement("li");
-        li.textContent = item;
-        nextList.appendChild(li);
-      });
-
-      document.getElementById("feedbackContainer").style.display = "flex";
-      document.getElementById("feedbackContainer").scrollIntoView({ behavior: "smooth" });
-    }
-
-    // Allow Ctrl+Enter or Enter to send
-    document.getElementById("candidateAnswer").addEventListener("keydown", (e) => {
-      if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault();
-        sendTurn();
-      }
-    });
+    // Render App
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
   </script>
 </body>
 </html>
