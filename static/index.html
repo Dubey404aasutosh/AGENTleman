@@ -47,9 +47,6 @@
   <!-- Framer Motion UMD -->
   <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
 
-  <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
-
   <style>
     :root {
       --clay-bg: #EEF2F6;
@@ -92,6 +89,24 @@
         6px 6px 14px var(--shadow-dark),
         -6px -6px 14px var(--shadow-light),
         inset 4px 4px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    /* Clay Inset Inputs */
+    .clay-input {
+      background: #E8EEF5;
+      border-radius: 20px;
+      box-shadow: 
+        inset 4px 4px 8px #c1c9d6,
+        inset -4px -4px 8px #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      outline: none;
+      transition: all 0.2s ease;
+    }
+    .clay-input:focus {
+      box-shadow: 
+        inset 5px 5px 10px #b5bdcb,
+        inset -5px -5px 10px #ffffff,
+        0 0 0 3px rgba(99, 102, 241, 0.2);
     }
 
     /* Clay Card Variant Colors */
@@ -171,16 +186,6 @@
       box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
     }
 
-    /* Idle floating animations fallback */
-    @keyframes floatSlow {
-      0%, 100% { transform: translateY(-4px); }
-      50% { transform: translateY(4px); }
-    }
-    @keyframes floatMedium {
-      0%, 100% { transform: translateY(3px); }
-      50% { transform: translateY(-5px); }
-    }
-
     /* Reduced Motion Accessibility */
     @media (prefers-reduced-motion: reduce) {
       *, ::before, ::after {
@@ -206,7 +211,55 @@
     const FramerMotion = window.Motion || window.FramerMotion;
     const { motion, useScroll, useTransform, useSpring, AnimatePresence } = FramerMotion;
 
-    // --- Custom SVG Icons for Clay Cards ---
+    // Candidate List Data
+    const CANDIDATES_DATA = [
+      { id: "CAND-001", name: "Sarah Johnson", jobRole: "Senior Data Engineer" },
+      { id: "CAND-002", name: "Alex Turner", jobRole: "Backend Software Engineer" },
+      { id: "CAND-003", name: "Emily Chen", jobRole: "AI Engineer" },
+      { id: "CAND-004", name: "David Miller", jobRole: "Business Analyst" },
+      { id: "CAND-005", name: "Michael Brown", jobRole: "DevOps Engineer" },
+      { id: "CAND-006", name: "Wendy Foster", jobRole: "Marketing Manager" },
+      { id: "CAND-007", name: "Ethan Brooks", jobRole: "Computer Science Intern" },
+      { id: "CAND-008", name: "Harold Whitfield", jobRole: "Distinguished Engineer" },
+      { id: "CAND-009", name: "Zara Ahmadi", jobRole: "AI Engineer" },
+      { id: "CAND-010", name: "Gerald Combs", jobRole: "IT Support Specialist" },
+      { id: "CAND-011", name: "Mia Alvarez", jobRole: "UX Researcher" },
+      { id: "CAND-012", name: "Chen Wei", jobRole: "Mobile App Developer" },
+      { id: "CAND-013", name: "Ravi Patel", jobRole: "Software Engineer" },
+      { id: "CAND-014", name: "Bethany Cole", jobRole: "HR Manager" },
+      { id: "CAND-015", name: "Noah Kim", jobRole: "Principal Architect" },
+      { id: "CAND-016", name: "Isabella Rossi", jobRole: "Software Engineer" },
+      { id: "CAND-017", name: "Tyler Brooks", jobRole: "Junior Developer" },
+      { id: "CAND-018", name: "Diane Foster", jobRole: "AI Engineer" },
+      { id: "CAND-019", name: "Frank DeLuca", jobRole: "Legacy Systems Engineer" },
+      { id: "CAND-020", name: "Priyanka Sharma", jobRole: "Software Engineer" }
+    ];
+
+    // --- Vector SVG Icons (Zero Emojis) ---
+    const IconSparkles = () => (
+      <svg className="w-4 h-4 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+      </svg>
+    );
+
+    const IconRobotNode = () => (
+      <svg className="w-8 h-8 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect width="18" height="12" x="3" y="8" rx="2"/>
+        <path d="M12 2v6"/>
+        <path d="M8 14v1"/>
+        <path d="M16 14v1"/>
+        <path d="M9 18h6"/>
+        <circle cx="8" cy="12" r="1"/>
+        <circle cx="16" cy="12" r="1"/>
+      </svg>
+    );
+
+    const IconLightningNode = () => (
+      <svg className="w-7 h-7 text-yellow-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+      </svg>
+    );
+
     const IconTooling = () => (
       <svg className="w-8 h-8 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
@@ -218,7 +271,6 @@
         <ellipse cx="12" cy="5" rx="9" ry="3"/>
         <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
         <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
-        <circle cx="12" cy="12" r="2" fill="currentColor"/>
       </svg>
     );
 
@@ -236,8 +288,6 @@
         <rect x="3" y="11" width="18" height="10" rx="3"/>
         <circle cx="12" cy="5" r="2"/>
         <path d="M12 7v4"/>
-        <line x1="8" y1="16" x2="8.01" y2="16" strokeWidth="3"/>
-        <line x1="16" y1="16" x2="16.01" y2="16" strokeWidth="3"/>
       </svg>
     );
 
@@ -277,23 +327,311 @@
       <svg className="w-8 h-8 text-rose-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/>
         <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-3.05 11a22.35 22.35 0 0 1-3.95 2z"/>
-        <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/>
-        <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/>
       </svg>
     );
 
-    // --- Main Application Component ---
+    const IconBookStep = () => (
+      <svg className="w-8 h-8 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>
+      </svg>
+    );
+
+    const IconCodeStep = () => (
+      <svg className="w-8 h-8 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="16 18 22 12 16 6"/>
+        <polyline points="8 6 2 12 8 18"/>
+      </svg>
+    );
+
+    const IconMicStep = () => (
+      <svg className="w-8 h-8 text-purple-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+        <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+      </svg>
+    );
+
+    const IconTargetStep = () => (
+      <svg className="w-8 h-8 text-orange-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <circle cx="12" cy="12" r="6"/>
+        <circle cx="12" cy="12" r="2"/>
+      </svg>
+    );
+
+    const IconLockBadge = () => (
+      <svg className="w-4 h-4 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+      </svg>
+    );
+
+    const IconCheck = () => (
+      <svg className="w-4 h-4 text-emerald-400" viewBox="0 0 20 20" fill="currentColor">
+        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+      </svg>
+    );
+
+    // --- Main Technical Interviewer Dashboard Component ---
+    function InterviewDashboardSection() {
+      const [selectedCandidateId, setSelectedCandidateId] = useState("CAND-001");
+      const [fullCandidatesRaw, setFullCandidatesRaw] = useState([]);
+      const [sessionId, setSessionId] = useState(null);
+      const [messages, setMessages] = useState([]);
+      const [inputValue, setInputValue] = useState("");
+      const [isTyping, setIsTyping] = useState(false);
+      const [isDone, setIsDone] = useState(false);
+      const [feedback, setFeedback] = useState(null);
+      const [statusText, setStatusText] = useState("");
+
+      const chatBoxRef = useRef(null);
+
+      useEffect(() => {
+        fetch("candidates.json")
+          .then(res => res.json())
+          .then(data => { setFullCandidatesRaw(data.candidates || []); })
+          .catch(err => console.error("Could not pre-load candidates.json", err));
+      }, []);
+
+      useEffect(() => {
+        if (chatBoxRef.current) {
+          chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
+        }
+      }, [messages, isTyping]);
+
+      const handleStartInterview = async () => {
+        const fullCand = fullCandidatesRaw.find(c => c.member && c.member.id === selectedCandidateId);
+        const candData = fullCand || { member: { id: selectedCandidateId, name: "Selected Candidate", jobRole: "Engineer" } };
+
+        const newSessionId = "session-" + selectedCandidateId + "-" + Date.now();
+        setSessionId(newSessionId);
+        setMessages([]);
+        setFeedback(null);
+        setIsDone(false);
+        setIsTyping(true);
+        setStatusText("Initializing AI Interviewer state...");
+
+        try {
+          const res = await fetch("/api/interview", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              sessionId: newSessionId,
+              candidate: candData
+            })
+          });
+          const data = await res.json();
+          setIsTyping(false);
+          setStatusText("");
+
+          if (res.ok && data.reply) {
+            setMessages([{ role: "interviewer", author: "AI Interviewer", text: data.reply }]);
+          } else {
+            setMessages([{ role: "interviewer", author: "System Error", text: "Error starting interview: " + JSON.stringify(data) }]);
+          }
+        } catch (err) {
+          setIsTyping(false);
+          setStatusText("");
+          setMessages([{ role: "interviewer", author: "System Error", text: "Network error starting interview: " + err.message }]);
+        }
+      };
+
+      const handleSendTurn = async () => {
+        if (!inputValue.trim() || !sessionId || isTyping || isDone) return;
+        const userMsg = inputValue.trim();
+        setInputValue("");
+
+        setMessages(prev => [...prev, { role: "candidate", author: "Candidate", text: userMsg }]);
+        setIsTyping(true);
+
+        try {
+          const res = await fetch("/api/interview", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              sessionId,
+              message: userMsg
+            })
+          });
+          const data = await res.json();
+          setIsTyping(false);
+
+          if (res.ok) {
+            setMessages(prev => [...prev, { role: "interviewer", author: "AI Interviewer", text: data.reply }]);
+            if (data.done) {
+              setIsDone(true);
+              setFeedback(data.feedback);
+            }
+          } else {
+            setMessages(prev => [...prev, { role: "interviewer", author: "System Error", text: "Error on turn: " + JSON.stringify(data) }]);
+          }
+        } catch (err) {
+          setIsTyping(false);
+          setMessages(prev => [...prev, { role: "interviewer", author: "System Error", text: "Network error: " + err.message }]);
+        }
+      };
+
+      return (
+        <section id="interview-app" className="py-20 px-6 max-w-5xl mx-auto">
+          <div className="text-center max-w-3xl mx-auto mb-10">
+            <span className="clay-card clay-purple px-4 py-1.5 text-xs font-bold text-indigo-900 tracking-widest uppercase inline-block mb-3">
+              Phase 6 Submission — Claymorphism UI
+            </span>
+            <h2 className="font-display font-extrabold text-3xl sm:text-5xl text-slate-900 tracking-tight mb-3">
+              AI Cohort Technical Interviewer
+            </h2>
+            <p className="text-slate-600 text-base sm:text-lg">
+              Autonomous 10-turn AI agent evaluating candidate mission mastery in real time.
+            </p>
+          </div>
+
+          <div className="clay-card p-6 sm:p-10 border-2 border-white shadow-2xl">
+            {/* Candidate Selector Header */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8 pb-6 border-b border-slate-200">
+              <div className="w-full sm:w-auto flex items-center gap-3">
+                <label className="font-bold text-sm text-slate-700 whitespace-nowrap">Select Candidate:</label>
+                <select 
+                  value={selectedCandidateId}
+                  onChange={(e) => setSelectedCandidateId(e.target.value)}
+                  className="w-full sm:w-80 px-4 py-2.5 text-sm font-semibold text-slate-800 clay-input rounded-2xl cursor-pointer"
+                >
+                  {CANDIDATES_DATA.map(c => (
+                    <option key={c.id} value={c.id}>
+                      {c.id} — {c.name} ({c.jobRole})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <button 
+                onClick={handleStartInterview}
+                className="w-full sm:w-auto clay-btn-primary px-7 py-3 text-sm font-bold flex items-center justify-center gap-2"
+              >
+                <span>Start Interview Session</span>
+              </button>
+            </div>
+
+            {/* Chat Conversation Box */}
+            <div 
+              ref={chatBoxRef}
+              className="clay-input p-6 rounded-3xl min-h-[360px] max-h-[500px] overflow-y-auto space-y-6 mb-6 flex flex-col"
+            >
+              {messages.length === 0 && !isTyping && (
+                <div className="m-auto text-center text-slate-400 font-medium py-16">
+                  Select a candidate above and click <span className="font-bold text-indigo-600">Start Interview Session</span> to begin the live technical evaluation.
+                </div>
+              )}
+
+              {messages.map((msg, idx) => (
+                <div 
+                  key={idx} 
+                  className={`flex flex-col ${msg.role === 'candidate' ? 'items-end' : 'items-start'}`}
+                >
+                  <span className="text-[11px] font-bold text-slate-500 mb-1 px-1">
+                    {msg.author}
+                  </span>
+                  <div 
+                    className={`max-w-[85%] p-5 rounded-3xl text-sm leading-relaxed ${
+                      msg.role === 'candidate'
+                        ? 'clay-card clay-blue text-slate-900 font-medium'
+                        : 'clay-card clay-purple text-slate-900 font-medium'
+                    }`}
+                  >
+                    {msg.text}
+                  </div>
+                </div>
+              ))}
+
+              {isTyping && (
+                <div className="flex flex-col items-start">
+                  <span className="text-[11px] font-bold text-indigo-600 mb-1 px-1">AI Interviewer</span>
+                  <div className="clay-card clay-purple px-5 py-4 rounded-3xl flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-indigo-600 animate-ping"></span>
+                    <span className="text-xs font-semibold text-indigo-900">Evaluating response & formulating next prompt...</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Candidate Answer Input */}
+            <div className="flex flex-col sm:flex-row items-center gap-3">
+              <input 
+                type="text"
+                disabled={!sessionId || isTyping || isDone}
+                placeholder={isDone ? "Interview completed." : !sessionId ? "Start session above to enable input..." : "Type candidate's answer here..."}
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") handleSendTurn(); }}
+                className="w-full px-5 py-3.5 text-sm font-medium text-slate-800 clay-input disabled:opacity-50"
+              />
+              <button 
+                onClick={handleSendTurn}
+                disabled={!sessionId || isTyping || isDone || !inputValue.trim()}
+                className="w-full sm:w-auto clay-btn-primary px-8 py-3.5 text-sm font-bold whitespace-nowrap disabled:opacity-50"
+              >
+                Send Answer
+              </button>
+            </div>
+
+            {/* Feedback Scorecard Container */}
+            {feedback && (
+              <div className="mt-8 pt-8 border-t border-slate-200">
+                <div className="clay-card clay-mint p-8 rounded-3xl">
+                  <h3 className="font-display font-extrabold text-2xl text-emerald-900 mb-3">
+                    Evaluation & Feedback Report
+                  </h3>
+                  <p className="text-sm font-medium text-emerald-800 mb-6 leading-relaxed">
+                    {feedback.summary || "Evaluation completed."}
+                  </p>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
+                    <div className="bg-white/60 p-5 rounded-2xl">
+                      <h4 className="font-bold text-emerald-900 mb-2">Strengths</h4>
+                      <ul className="list-disc list-inside space-y-1 text-slate-700">
+                        {(feedback.strengths || []).map((s, i) => <li key={i}>{s}</li>)}
+                      </ul>
+                    </div>
+
+                    <div className="bg-white/60 p-5 rounded-2xl">
+                      <h4 className="font-bold text-amber-900 mb-2">Technical Gaps</h4>
+                      <ul className="list-disc list-inside space-y-1 text-slate-700">
+                        {(feedback.gaps || []).map((g, i) => <li key={i}>{g}</li>)}
+                      </ul>
+                    </div>
+
+                    <div className="bg-white/60 p-5 rounded-2xl">
+                      <h4 className="font-bold text-indigo-900 mb-2">Recommended Steps</h4>
+                      <ul className="list-disc list-inside space-y-1 text-slate-700">
+                        {(feedback.next || []).map((n, i) => <li key={i}>{n}</li>)}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+          </div>
+        </section>
+      );
+    }
+
+    // --- Main Landing Page Application ---
     function App() {
       const { scrollY, scrollYProgress } = useScroll();
       const scaleX = useSpring(scrollYProgress, { stiffness: 100, damping: 30, restDelta: 0.001 });
 
-      // Parallax bindings
       const heroBgY = useTransform(scrollY, [0, 800], [0, 180]);
       const heroTextY = useTransform(scrollY, [0, 800], [0, 40]);
       const testimonialParallax1 = useTransform(scrollY, [1400, 2600], [30, -30]);
       const testimonialParallax2 = useTransform(scrollY, [1400, 2600], [-20, 40]);
 
-      // Modules Data
+      const scrollToInterviewApp = (e) => {
+        if (e) e.preventDefault();
+        const elem = document.getElementById("interview-app");
+        if (elem) {
+          elem.scrollIntoView({ behavior: "smooth" });
+        }
+      };
+
       const modules = [
         {
           id: 1,
@@ -400,21 +738,22 @@
                 <a href="#stats" className="hover:text-indigo-600 transition-colors">Overview</a>
                 <a href="#curriculum" className="hover:text-indigo-600 transition-colors">Curriculum</a>
                 <a href="#how-it-works" className="hover:text-indigo-600 transition-colors">How It Works</a>
+                <a href="#interview-app" className="hover:text-indigo-600 transition-colors font-bold text-indigo-600">AI Interviewer App</a>
                 <a href="#testimonials" className="hover:text-indigo-600 transition-colors">Stories</a>
               </nav>
 
               {/* CTA Button */}
-              <a href="#enroll" className="clay-btn-primary px-6 py-2.5 text-sm flex items-center gap-2">
+              <button onClick={scrollToInterviewApp} className="clay-btn-primary px-6 py-2.5 text-sm flex items-center gap-2 cursor-pointer">
                 <span>Enroll Now</span>
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                 </svg>
-              </a>
+              </button>
             </div>
           </header>
 
           {/* Hero Section with Parallax Background */}
-          <section className="relative pt-32 pb-24 md:pt-40 md:pb-36 overflow-hidden bg-gradient-to-b from-indigo-900 via-indigo-950 to-slate-950 text-white">
+          <section className="relative pt-44 pb-24 md:pt-52 md:pb-36 overflow-hidden bg-gradient-to-b from-indigo-900 via-indigo-950 to-slate-950 text-white">
             
             {/* Parallax Layer 1: SVG Blobs & Shapes */}
             <motion.div 
@@ -438,21 +777,21 @@
               </svg>
             </motion.div>
 
-            {/* Parallax Layer 2: Floating 3D Nodes */}
+            {/* Parallax Layer 2: Floating 3D Vector SVG Nodes (No Emojis) */}
             <div className="absolute inset-0 pointer-events-none">
               <motion.div 
                 animate={{ y: [-10, 10, -10], rotate: [0, 5, 0] }}
                 transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
                 className="absolute top-1/4 left-10 w-16 h-16 glass-panel rounded-3xl flex items-center justify-center shadow-2xl border border-white/20 hidden lg:flex"
               >
-                <span className="text-2xl">⚡</span>
+                <IconLightningNode />
               </motion.div>
               <motion.div 
                 animate={{ y: [12, -12, 12], rotate: [0, -6, 0] }}
                 transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1 }}
                 className="absolute bottom-1/3 right-12 w-20 h-20 glass-panel rounded-3xl flex items-center justify-center shadow-2xl border border-white/20 hidden lg:flex"
               >
-                <span className="text-3xl">🤖</span>
+                <IconRobotNode />
               </motion.div>
             </div>
 
@@ -501,12 +840,12 @@
                 className="glass-panel p-6 sm:p-8 max-w-xl mx-auto border border-white/20 shadow-2xl backdrop-blur-xl"
               >
                 <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                  <a href="#enroll" className="w-full sm:w-auto clay-btn-primary px-8 py-4 text-base font-bold flex items-center justify-center gap-3">
+                  <button onClick={scrollToInterviewApp} className="w-full sm:w-auto clay-btn-primary px-8 py-4 text-base font-bold flex items-center justify-center gap-3 cursor-pointer">
                     <span>Start Learning</span>
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                     </svg>
-                  </a>
+                  </button>
                   <a href="#curriculum" className="w-full sm:w-auto px-8 py-4 text-base font-bold text-white glass-panel hover:bg-white/20 transition-all rounded-full flex items-center justify-center border border-white/30">
                     See Curriculum
                   </a>
@@ -514,21 +853,15 @@
 
                 <div className="mt-5 pt-4 border-t border-white/10 flex items-center justify-center gap-6 text-xs text-indigo-200">
                   <span className="flex items-center gap-1.5">
-                    <svg className="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
-                    </svg>
+                    <IconCheck />
                     31 Daily Sprints
                   </span>
                   <span className="flex items-center gap-1.5">
-                    <svg className="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
-                    </svg>
+                    <IconCheck />
                     Live Code Reviews
                   </span>
                   <span className="flex items-center gap-1.5">
-                    <svg className="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
-                    </svg>
+                    <IconCheck />
                     Deploy Real Apps
                   </span>
                 </div>
@@ -537,10 +870,9 @@
             </motion.div>
           </section>
 
-          {/* Stats Bar (Claymorphism Cards with Staggered Fade) */}
+          {/* Stats Bar */}
           <section id="stats" className="py-16 px-6 max-w-7xl mx-auto -mt-10 relative z-20">
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-              
               {[
                 { number: "31 Days", label: "Intensive Sprints", bg: "clay-blue", color: "text-blue-700" },
                 { number: "8 Modules", label: "Full-Stack AI Syllabus", bg: "clay-purple", color: "text-purple-700" },
@@ -563,11 +895,13 @@
                   </span>
                 </motion.div>
               ))}
-
             </div>
           </section>
 
-          {/* Course Catalog Preview (Claymorphism Grid with Staggered Idle Float) */}
+          {/* Main Technical Interviewer Dashboard Integration */}
+          <InterviewDashboardSection />
+
+          {/* Course Catalog Preview */}
           <section id="curriculum" className="py-20 px-6 max-w-7xl mx-auto">
             <div className="text-center max-w-3xl mx-auto mb-16">
               <span className="clay-card clay-purple px-4 py-1.5 text-xs font-bold text-purple-800 tracking-widest uppercase inline-block mb-3">
@@ -581,7 +915,6 @@
               </p>
             </div>
 
-            {/* Course Cards Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               {modules.map((m, i) => (
                 <motion.div
@@ -627,7 +960,7 @@
             </div>
           </section>
 
-          {/* "How It Works" Narrative Section with SVG Path-Draw Scroll Trigger */}
+          {/* "How It Works" Narrative Section */}
           <section id="how-it-works" className="py-24 px-6 max-w-6xl mx-auto relative">
             <div className="text-center max-w-2xl mx-auto mb-20">
               <span className="clay-card clay-peach px-4 py-1.5 text-xs font-bold text-orange-800 tracking-widest uppercase inline-block mb-3">
@@ -641,18 +974,10 @@
               </p>
             </div>
 
-            {/* Timeline Steps Container */}
             <div className="relative">
-              
-              {/* Vertical Animated SVG Connecting Path (Desktop) */}
               <div className="hidden md:block absolute left-1/2 top-10 bottom-10 w-2 -translate-x-1/2 pointer-events-none z-0">
                 <svg className="w-full h-full overflow-visible" preserveAspectRatio="none">
-                  <path 
-                    d="M 0 0 V 850" 
-                    stroke="#CBD5E1" 
-                    strokeWidth="4" 
-                    strokeDasharray="8 8" 
-                  />
+                  <path d="M 0 0 V 850" stroke="#CBD5E1" strokeWidth="4" strokeDasharray="8 8" />
                   <motion.path
                     d="M 0 0 V 850"
                     stroke="#6366F1"
@@ -663,16 +988,14 @@
                 </svg>
               </div>
 
-              {/* 4 Step Narrative Cards */}
               <div className="space-y-16 relative z-10">
-                
                 {[
                   {
                     step: "01",
                     title: "Learn Core Concepts",
                     desc: "30-minute high-density video teardowns every morning covering architecture patterns, embeddings math, and agent loops.",
                     bg: "clay-blue",
-                    icon: "📚",
+                    icon: <IconBookStep />,
                     side: "left"
                   },
                   {
@@ -680,7 +1003,7 @@
                     title: "Build Production Code",
                     desc: "Implement hands-on code repos with Rye, FastAPI, and Qdrant. No copy-paste snippets; pure unguided problem solving.",
                     bg: "clay-mint",
-                    icon: "⚡",
+                    icon: <IconCodeStep />,
                     side: "right"
                   },
                   {
@@ -688,7 +1011,7 @@
                     title: "Get Interviewed by AI Agent",
                     desc: "Put your code to the test. Your capstone project will be live-interrogated by an autonomous AI voice evaluator.",
                     bg: "clay-purple",
-                    icon: "🎙️",
+                    icon: <IconMicStep />,
                     side: "left"
                   },
                   {
@@ -696,7 +1019,7 @@
                     title: "Receive Instant Feedback",
                     desc: "Get automated rubrics on code cleanliness, latency optimization, cost management, and system resilience.",
                     bg: "clay-peach",
-                    icon: "🎯",
+                    icon: <IconTargetStep />,
                     side: "right"
                   }
                 ].map((s, idx) => (
@@ -708,11 +1031,10 @@
                     transition={{ duration: 0.6, delay: 0.1 }}
                     className={`flex flex-col md:flex-row items-center ${s.side === "right" ? "md:flex-row-reverse" : ""} justify-between gap-8`}
                   >
-                    {/* Card Content */}
                     <div className="w-full md:w-[45%]">
                       <div className={`clay-card ${s.bg} p-8 relative overflow-hidden group`}>
                         <div className="flex items-center justify-between mb-4">
-                          <span className="text-4xl">{s.icon}</span>
+                          <div>{s.icon}</div>
                           <span className="font-display font-black text-3xl text-indigo-900/20 group-hover:text-indigo-600/40 transition-colors">
                             {s.step}
                           </span>
@@ -726,24 +1048,19 @@
                       </div>
                     </div>
 
-                    {/* Central Indicator Node */}
                     <div className="w-12 h-12 rounded-full clay-card clay-purple hidden md:flex items-center justify-center text-indigo-700 font-bold z-10 shadow-lg">
                       {idx + 1}
                     </div>
 
-                    {/* Spacer for 2-column layout */}
                     <div className="w-full md:w-[45%] hidden md:block" />
                   </motion.div>
                 ))}
-
               </div>
             </div>
           </section>
 
-          {/* Testimonial / Social Proof Strip (Glassmorphism over Gradient Parallax) */}
+          {/* Testimonial Strip */}
           <section id="testimonials" className="py-24 px-6 bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900 text-white relative overflow-hidden">
-            
-            {/* Ambient Background Glows */}
             <div className="absolute top-0 left-1/4 w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none" />
             <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-pink-500/20 rounded-full blur-3xl pointer-events-none" />
 
@@ -760,9 +1077,7 @@
                 </p>
               </div>
 
-              {/* 3 Glassmorphic Quote Cards with Parallax Drift */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                
                 {[
                   {
                     quote: "The hands-on MCP module alone saved our engineering team weeks of trial and error. Best investment I made this year.",
@@ -796,7 +1111,6 @@
                     className="glass-card-dark p-8 flex flex-col justify-between border border-white/20 hover:border-white/40 transition-colors"
                   >
                     <div>
-                      {/* Quote Mark */}
                       <div className="text-4xl text-purple-400 font-serif mb-4">“</div>
                       <p className="text-slate-200 text-sm sm:text-base leading-relaxed mb-8">
                         {t.quote}
@@ -816,12 +1130,11 @@
                     </div>
                   </motion.div>
                 ))}
-
               </div>
             </div>
           </section>
 
-          {/* Final CTA & Footer Section */}
+          {/* Final CTA Panel & Footer Section */}
           <section id="enroll" className="py-24 px-6 max-w-5xl mx-auto">
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }}
@@ -830,7 +1143,6 @@
               transition={{ duration: 0.6 }}
               className="clay-card clay-purple p-10 sm:p-16 text-center relative overflow-hidden border-2 border-white"
             >
-              {/* Glass Inner Card Overlay */}
               <div className="glass-panel p-8 sm:p-12 max-w-3xl mx-auto border border-indigo-300/40">
                 <span className="px-4 py-1.5 rounded-full bg-indigo-600 text-white font-bold text-xs uppercase tracking-widest inline-block mb-4">
                   Limited Enrollment
@@ -843,16 +1155,17 @@
                 </p>
 
                 <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                  <button onClick={() => alert('Welcome to AI Cohort! Registration opening soon.')} className="w-full sm:w-auto clay-btn-primary px-10 py-4 text-base font-bold flex items-center justify-center gap-3">
-                    <span>Reserve Your Spot ($499)</span>
+                  <button onClick={scrollToInterviewApp} className="w-full sm:w-auto clay-btn-primary px-10 py-4 text-base font-bold flex items-center justify-center gap-3 cursor-pointer">
+                    <span>Launch AI Interviewer App</span>
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                     </svg>
                   </button>
                 </div>
 
-                <p className="text-xs font-semibold text-slate-500 mt-4">
-                  🔒 100% Money-Back Guarantee during Week 1
+                <p className="text-xs font-semibold text-slate-500 mt-4 flex items-center justify-center gap-1.5">
+                  <IconLockBadge />
+                  100% Money-Back Guarantee during Week 1
                 </p>
               </div>
             </motion.div>
