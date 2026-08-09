@@ -189,7 +189,7 @@ def test_fallback_sticky(sample_session):
     mock_resp = MagicMock()
     mock_resp.text = '{"reply": "Fallback response"}'
 
-    error_429 = APIError(429, "429 ResourceExhausted")
+    error_429 = APIError(429, {"error": {"code": 429, "message": "RESOURCE_EXHAUSTED"}})
 
     with patch("google.genai.models.Models.generate_content") as mock_gen:
         mock_gen.side_effect = [error_429, mock_resp]
@@ -221,6 +221,42 @@ def test_fallback_sticky(sample_session):
         assert mock_gen.call_count == 1
         call_kwargs = mock_gen.call_args.kwargs
         assert call_kwargs["model"] == llm_client.FALLBACK_MODEL
+
+
+def test_both_models_exhausted_raises_llm_call_error(sample_session):
+    """
+    Verifies that when primary raises 429 AND fallback raises 429 (and retry fails),
+    llm_client.generate cleanly raises LLMCallError('Both models exhausted...').
+    Traces exact 3-call sequence: Primary (429) -> Fallback (429) -> Fallback retry (429).
+    """
+    client = llm_client.LLMClient(api_key="fake-key")
+
+    primary_error = APIError(429, {"error": {"code": 429, "message": "Primary 429"}})
+    fallback_error = APIError(429, {"error": {"code": 429, "message": "Fallback 429"}})
+
+    with patch("google.genai.models.Models.generate_content") as mock_gen:
+        # Requires 3 side effects: Primary call + Fallback call + Fallback retry call
+        mock_gen.side_effect = [primary_error, fallback_error, fallback_error]
+
+        with pytest.raises(llm_client.LLMCallError) as exc_info:
+            client.generate(
+                system_prompt="sys",
+                messages=[],
+                response_schema={"type": "OBJECT"},
+                session=sample_session,
+            )
+
+        assert "Both models exhausted" in str(exc_info.value)
+        assert sample_session.using_fallback is True
+        assert mock_gen.call_count == 3
+
+        # Confirm call model sequence: Primary -> Fallback -> Fallback
+        models_called = [call.kwargs["model"] for call in mock_gen.call_args_list]
+        assert models_called == [
+            llm_client.PRIMARY_MODEL,
+            llm_client.FALLBACK_MODEL,
+            llm_client.FALLBACK_MODEL,
+        ]
 
 
 def test_generate_first_question_fallback(sample_session):
