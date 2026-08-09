@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Cohort Technical Interviewer — Claymorphism UI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-color: #e4e9f2;
+      --clay-surface: #e4e9f2;
+      --shadow-light: #ffffff;
+      --shadow-dark: #b8c4d8;
+      
+      --purple-clay: #dedaff;
+      --purple-dark: #4338ca;
+      --purple-shadow-dark: #b4aeed;
+      
+      --peach-clay: #ffe3d8;
+      --peach-dark: #9a3412;
+      --peach-shadow-dark: #e8bbae;
+
+      --green-clay: #dcfce7;
+      --green-dark: #15803d;
+      
+      --amber-clay: #fef3c7;
+      --amber-dark: #b45309;
+
+      --blue-clay: #e0f2fe;
+      --blue-dark: #0369a1;
+
+      --text-main: #2d3748;
+      --text-muted: #64748b;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px;
+    }
+
+    .header-container {
+      width: 100%;
+      max-width: 900px;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+
+    .clay-badge {
+      display: inline-block;
+      padding: 6px 16px;
+      background: var(--purple-clay);
+      color: var(--purple-dark);
+      border-radius: 20px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      box-shadow: 5px 5px 10px var(--shadow-dark), -5px -5px 10px var(--shadow-light);
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 8px;
+    }
+
+    p.subtitle {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+    }
+
+    .main-card {
+      width: 100%;
+      max-width: 900px;
+      background: var(--clay-surface);
+      border-radius: 32px;
+      padding: 28px;
+      box-shadow: 12px 12px 24px var(--shadow-dark), -12px -12px 24px var(--shadow-light),
+                  inset 2px 2px 4px rgba(255, 255, 255, 0.8), inset -2px -2px 4px rgba(0, 0, 0, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .controls-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(255, 255, 255, 0.3);
+      padding: 16px 20px;
+      border-radius: 24px;
+      box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light);
+    }
+
+    .picker-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+      min-width: 280px;
+    }
+
+    label {
+      font-weight: 600;
+      color: #334155;
+      font-size: 0.95rem;
+      white-space: nowrap;
+    }
+
+    select.clay-select {
+      width: 100%;
+      padding: 12px 18px;
+      border-radius: 20px;
+      border: none;
+      background: var(--clay-surface);
+      color: var(--text-main);
+      font-size: 0.95rem;
+      font-weight: 600;
+      outline: none;
+      cursor: pointer;
+      box-shadow: 6px 6px 12px var(--shadow-dark), -6px -6px 12px var(--shadow-light);
+      transition: all 0.2s ease;
+    }
+
+    select.clay-select:focus {
+      box-shadow: inset 3px 3px 6px var(--shadow-dark), inset -3px -3px 6px var(--shadow-light);
+    }
+
+    button.clay-btn {
+      padding: 12px 26px;
+      border-radius: 20px;
+      border: none;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      outline: none;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    button.clay-btn-primary {
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      color: #ffffff;
+      box-shadow: 6px 6px 14px var(--shadow-dark), -6px -6px 14px var(--shadow-light);
+    }
+
+    button.clay-btn-primary:hover {
+      background: linear-gradient(135deg, #4f46e5, #4338ca);
+    }
+
+    button.clay-btn-primary:active {
+      transform: scale(0.96) translateY(2px);
+      box-shadow: inset 3px 3px 6px rgba(0, 0, 0, 0.25), inset -3px -3px 6px rgba(255, 255, 255, 0.2);
+    }
+
+    button.clay-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+
+    .chat-box {
+      min-height: 420px;
+      max-height: 520px;
+      overflow-y: auto;
+      padding: 20px;
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.25);
+      box-shadow: inset 5px 5px 12px var(--shadow-dark), inset -5px -5px 12px var(--shadow-light);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      scroll-behavior: smooth;
+    }
+
+    .chat-bubble-wrapper {
+      display: flex;
+      flex-direction: column;
+      max-width: 82%;
+      animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+
+    @keyframes popIn {
+      0% { opacity: 0; transform: scale(0.92) translateY(10px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .chat-bubble-wrapper.interviewer {
+      align-self: flex-start;
+    }
+
+    .chat-bubble-wrapper.candidate {
+      align-self: flex-end;
+    }
+
+    .bubble-author {
+      font-size: 0.8rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+      padding: 0 8px;
+    }
+
+    .interviewer .bubble-author {
+      color: var(--purple-dark);
+    }
+
+    .candidate .bubble-author {
+      color: var(--peach-dark);
+      text-align: right;
+    }
+
+    .chat-bubble {
+      padding: 16px 22px;
+      font-size: 1rem;
+      line-height: 1.55;
+      font-weight: 500;
+    }
+
+    .interviewer .chat-bubble {
+      background: var(--purple-clay);
+      color: #1e1b4b;
+      border-radius: 24px 24px 24px 8px;
+      box-shadow: 7px 7px 15px var(--purple-shadow-dark), -7px -7px 15px #ffffff,
+                  inset 2px 2px 4px #ffffff, inset -2px -2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .candidate .chat-bubble {
+      background: var(--peach-clay);
+      color: #431407;
+      border-radius: 24px 24px 8px 24px;
+      box-shadow: 7px 7px 15px var(--peach-shadow-dark), -7px -7px 15px #ffffff,
+                  inset 2px 2px 4px #ffffff, inset -2px -2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .typing-indicator {
+      display: none;
+      align-self: flex-start;
+      background: var(--purple-clay);
+      padding: 14px 20px;
+      border-radius: 24px 24px 24px 8px;
+      box-shadow: 6px 6px 12px var(--purple-shadow-dark), -6px -6px 12px #ffffff;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .typing-indicator.active {
+      display: flex;
+    }
+
+    .dot {
+      width: 9px;
+      height: 9px;
+      background: var(--purple-dark);
+      border-radius: 50%;
+      animation: pulseBounce 1.4s infinite ease-in-out both;
+    }
+
+    .dot:nth-child(1) { animation-delay: -0.32s; }
+    .dot:nth-child(2) { animation-delay: -0.16s; }
+
+    @keyframes pulseBounce {
+      0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+      40% { transform: scale(1.15); opacity: 1; }
+    }
+
+    .input-area {
+      display: flex;
+      gap: 14px;
+      align-items: flex-end;
+    }
+
+    textarea.clay-input {
+      flex: 1;
+      padding: 14px 20px;
+      border-radius: 24px;
+      border: none;
+      background: var(--clay-surface);
+      color: var(--text-main);
+      font-size: 0.98rem;
+      font-weight: 500;
+      resize: none;
+      height: 72px;
+      outline: none;
+      box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light);
+      transition: box-shadow 0.2s ease;
+    }
+
+    textarea.clay-input:focus {
+      box-shadow: inset 6px 6px 12px var(--shadow-dark), inset -6px -6px 12px var(--shadow-light);
+    }
+
+    /* Feedback Display Section */
+    .feedback-container {
+      display: none;
+      flex-direction: column;
+      gap: 20px;
+      animation: celebratoryPop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+
+    @keyframes celebratoryPop {
+      0% { opacity: 0; transform: scale(0.95) translateY(20px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .celebration-banner {
+      background: linear-gradient(135deg, #a78bfa, #818cf8);
+      color: #ffffff;
+      padding: 20px;
+      border-radius: 28px;
+      text-align: center;
+      box-shadow: 8px 8px 18px var(--shadow-dark), -8px -8px 18px var(--shadow-light);
+    }
+
+    .celebration-banner h2 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .feedback-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .feedback-grid { grid-template-columns: 1fr; }
+    }
+
+    .feedback-card {
+      border-radius: 24px;
+      padding: 22px;
+      box-shadow: 8px 8px 18px var(--shadow-dark), -8px -8px 18px var(--shadow-light),
+                  inset 2px 2px 4px rgba(255, 255, 255, 0.8);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .feedback-card.summary-card {
+      grid-column: 1 / -1;
+      background: var(--purple-clay);
+    }
+
+    .feedback-card.strengths-card {
+      background: var(--green-clay);
+    }
+
+    .feedback-card.gaps-card {
+      background: var(--amber-clay);
+    }
+
+    .feedback-card.next-card {
+      grid-column: 1 / -1;
+      background: var(--blue-clay);
+    }
+
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .summary-card .card-title { color: var(--purple-dark); }
+    .strengths-card .card-title { color: var(--green-dark); }
+    .gaps-card .card-title { color: var(--amber-dark); }
+    .next-card .card-title { color: var(--blue-dark); }
+
+    .feedback-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .feedback-list li {
+      padding: 10px 14px;
+      background: rgba(255, 255, 255, 0.7);
+      border-radius: 16px;
+      font-size: 0.95rem;
+      font-weight: 500;
+      box-shadow: 3px 3px 6px rgba(0,0,0,0.04);
+      line-height: 1.45;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header-container">
+    <div class="clay-badge">Phase 6 Submission — Claymorphism UI</div>
+    <h1>AI Cohort Technical Interviewer</h1>
+    <p class="subtitle">Autonomous 10-turn AI agent evaluating candidate mission mastery.</p>
+  </div>
+
+  <div class="main-card">
+    
+    <!-- Controls / Candidate Selector -->
+    <div class="controls-bar">
+      <div class="picker-group">
+        <label for="candidateSelect">Select Candidate:</label>
+        <select id="candidateSelect" class="clay-select"></select>
+      </div>
+      <button id="startBtn" class="clay-btn clay-btn-primary" onclick="startInterview()">
+        Start Interview Session
+      </button>
+    </div>
+
+    <!-- Interactive Chat Window -->
+    <div id="chatBox" class="chat-box">
+      <div class="chat-bubble-wrapper interviewer">
+        <div class="bubble-author">AI Interviewer</div>
+        <div class="chat-bubble">
+          Welcome! Please select a candidate from the dropdown above and click "Start Interview Session" to begin the technical evaluation.
+        </div>
+      </div>
+    </div>
+
+    <!-- Typing Indicator -->
+    <div id="typingIndicator" class="typing-indicator">
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+    </div>
+
+    <!-- User Input Area -->
+    <div class="input-area">
+      <textarea id="candidateAnswer" class="clay-input" placeholder="Type candidate's answer here..." disabled></textarea>
+      <button id="sendBtn" class="clay-btn clay-btn-primary" onclick="sendTurn()" disabled>
+        Send Answer
+      </button>
+    </div>
+
+    <!-- Final Feedback Screen (Rendered upon done: true) -->
+    <div id="feedbackContainer" class="feedback-container">
+      <div class="celebration-banner">
+        <h2>🎉 Technical Interview Completed</h2>
+        <p>Comprehensive mission assessment synthesised below.</p>
+      </div>
+      
+      <div class="feedback-grid">
+        <!-- Summary Card -->
+        <div class="feedback-card summary-card">
+          <div class="card-title">📝 Executive Summary</div>
+          <p id="summaryText" style="font-weight: 500; line-height: 1.5;"></p>
+        </div>
+
+        <!-- Strengths Card -->
+        <div class="feedback-card strengths-card">
+          <div class="card-title">✅ Key Strengths</div>
+          <ul id="strengthsList" class="feedback-list"></ul>
+        </div>
+
+        <!-- Gaps Card -->
+        <div class="feedback-card gaps-card">
+          <div class="card-title">⚠️ Knowledge Gaps</div>
+          <ul id="gapsList" class="feedback-list"></ul>
+        </div>
+
+        <!-- Recommended Next Steps -->
+        <div class="feedback-card next-card">
+          <div class="card-title">🎯 Recommended Next Steps</div>
+          <ul id="nextList" class="feedback-list"></ul>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const CANDIDATES_DATA = [
+      { id: "CAND-001", name: "Sarah Johnson", jobRole: "Senior Data Engineer" },
+      { id: "CAND-002", name: "Alex Turner", jobRole: "Backend Software Engineer" },
+      { id: "CAND-003", name: "Emily Chen", jobRole: "AI Engineer" },
+      { id: "CAND-004", name: "David Miller", jobRole: "Business Analyst" },
+      { id: "CAND-005", name: "Michael Brown", jobRole: "DevOps Engineer" },
+      { id: "CAND-006", name: "Wendy Foster", jobRole: "Marketing Manager" },
+      { id: "CAND-007", name: "Ethan Brooks", jobRole: "Computer Science Intern" },
+      { id: "CAND-008", name: "Harold Whitfield", jobRole: "Distinguished Engineer" },
+      { id: "CAND-009", name: "Zara Ahmadi", jobRole: "AI Engineer" },
+      { id: "CAND-010", name: "Gerald Combs", jobRole: "IT Support Specialist" },
+      { id: "CAND-011", name: "Mia Alvarez", jobRole: "UX Researcher" },
+      { id: "CAND-012", name: "Chen Wei", jobRole: "Mobile App Developer" },
+      { id: "CAND-013", name: "Ravi Patel", jobRole: "Software Engineer" },
+      { id: "CAND-014", name: "Bethany Cole", jobRole: "HR Manager" },
+      { id: "CAND-015", name: "Noah Kim", jobRole: "Principal Architect" },
+      { id: "CAND-016", name: "Isabella Rossi", jobRole: "Software Engineer" },
+      { id: "CAND-017", name: "Tyler Brooks", jobRole: "Junior Developer" },
+      { id: "CAND-018", name: "Diane Foster", jobRole: "AI Engineer" },
+      { id: "CAND-019", name: "Frank DeLuca", jobRole: "Legacy Systems Engineer" },
+      { id: "CAND-020", name: "Priyanka Sharma", jobRole: "Software Engineer" }
+    ];
+
+    let currentSessionId = null;
+    let fullCandidatesRaw = [];
+
+    // Populate candidate dropdown
+    const selectElem = document.getElementById("candidateSelect");
+    CANDIDATES_DATA.forEach(c => {
+      const opt = document.createElement("option");
+      opt.value = c.id;
+      opt.textContent = `${c.id} — ${c.name} (${c.jobRole})`;
+      selectElem.appendChild(opt);
+    });
+
+    // Load full candidates JSON for full payload delivery
+    fetch("candidates.json")
+      .then(res => res.json())
+      .then(data => { fullCandidatesRaw = data.candidates; })
+      .catch(err => console.error("Could not pre-load candidates.json", err));
+
+    async function startInterview() {
+      const candidateId = selectElem.value;
+      const fullCand = fullCandidatesRaw.find(c => c.member.id === candidateId);
+      if (!fullCand) {
+        alert("Candidate payload loading... Please try again in a moment.");
+        return;
+      }
+
+      currentSessionId = "session-" + candidateId + "-" + Date.now();
+
+      // UI Reset
+      const chatBox = document.getElementById("chatBox");
+      chatBox.innerHTML = "";
+      document.getElementById("feedbackContainer").style.display = "none";
+      document.getElementById("candidateAnswer").disabled = true;
+      document.getElementById("sendBtn").disabled = true;
+      showTyping(true);
+
+      try {
+        const res = await fetch("/api/interview", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            sessionId: currentSessionId,
+            candidate: fullCand
+          })
+        });
+
+        const data = await res.json();
+        showTyping(false);
+
+        if (res.ok) {
+          appendMessage("interviewer", "AI Interviewer", data.reply);
+          document.getElementById("candidateAnswer").disabled = false;
+          document.getElementById("sendBtn").disabled = false;
+          document.getElementById("candidateAnswer").focus();
+        } else {
+          appendMessage("interviewer", "System Error", "Error starting interview: " + JSON.stringify(data));
+        }
+      } catch (err) {
+        showTyping(false);
+        appendMessage("interviewer", "System Error", "Network error starting interview: " + err.message);
+      }
+    }
+
+    async function sendTurn() {
+      const answerInput = document.getElementById("candidateAnswer");
+      const answer = answerInput.value.trim();
+      if (!answer || !currentSessionId) return;
+
+      appendMessage("candidate", "Candidate", answer);
+      answerInput.value = "";
+      answerInput.disabled = true;
+      document.getElementById("sendBtn").disabled = true;
+      showTyping(true);
+
+      try {
+        const res = await fetch("/api/interview", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            sessionId: currentSessionId,
+            message: answer
+          })
+        });
+
+        const data = await res.json();
+        showTyping(false);
+
+        if (res.ok) {
+          appendMessage("interviewer", "AI Interviewer", data.reply);
+
+          if (data.done) {
+            // Render clay-styled feedback screen
+            renderFeedback(data.feedback);
+          } else {
+            answerInput.disabled = false;
+            document.getElementById("sendBtn").disabled = false;
+            answerInput.focus();
+          }
+        } else {
+          appendMessage("interviewer", "System Error", "Error on turn: " + JSON.stringify(data));
+          answerInput.disabled = false;
+          document.getElementById("sendBtn").disabled = false;
+        }
+      } catch (err) {
+        showTyping(false);
+        appendMessage("interviewer", "System Error", "Network error sending answer: " + err.message);
+        answerInput.disabled = false;
+        document.getElementById("sendBtn").disabled = false;
+      }
+    }
+
+    function appendMessage(role, author, text) {
+      const chatBox = document.getElementById("chatBox");
+      const wrapper = document.createElement("div");
+      wrapper.className = `chat-bubble-wrapper ${role}`;
+
+      const authorDiv = document.createElement("div");
+      authorDiv.className = "bubble-author";
+      authorDiv.textContent = author;
+
+      const bubbleDiv = document.createElement("div");
+      bubbleDiv.className = "chat-bubble";
+      bubbleDiv.textContent = text;
+
+      wrapper.appendChild(authorDiv);
+      wrapper.appendChild(bubbleDiv);
+      chatBox.appendChild(wrapper);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function showTyping(show) {
+      const indicator = document.getElementById("typingIndicator");
+      if (show) {
+        indicator.classList.add("active");
+      } else {
+        indicator.classList.remove("active");
+      }
+      const chatBox = document.getElementById("chatBox");
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function renderFeedback(feedback) {
+      if (!feedback) return;
+      
+      document.getElementById("summaryText").textContent = feedback.summary || "N/A";
+      
+      const strengthsList = document.getElementById("strengthsList");
+      strengthsList.innerHTML = "";
+      (feedback.strengths || []).forEach(item => {
+        const li = document.createElement("li");
+        li.textContent = item;
+        strengthsList.appendChild(li);
+      });
+
+      const gapsList = document.getElementById("gapsList");
+      gapsList.innerHTML = "";
+      (feedback.gaps || []).forEach(item => {
+        const li = document.createElement("li");
+        li.textContent = item;
+        gapsList.appendChild(li);
+      });
+
+      const nextList = document.getElementById("nextList");
+      nextList.innerHTML = "";
+      (feedback.next || []).forEach(item => {
+        const li = document.createElement("li");
+        li.textContent = item;
+        nextList.appendChild(li);
+      });
+
+      document.getElementById("feedbackContainer").style.display = "flex";
+      document.getElementById("feedbackContainer").scrollIntoView({ behavior: "smooth" });
+    }
+
+    // Allow Ctrl+Enter or Enter to send
+    document.getElementById("candidateAnswer").addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendTurn();
+      }
+    });
+  </script>
+</body>
+</html>

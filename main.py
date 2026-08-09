@@ -12,7 +12,8 @@ load_dotenv()
 
 from fastapi import FastAPI, HTTPException
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
 from models import InterviewRequest, InterviewResponse, SessionState
@@ -35,6 +36,17 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="AI Interview Agent", lifespan=lifespan)
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+@app.get("/", include_in_schema=False)
+async def serve_index():
+    return FileResponse("static/index.html")
+
+@app.get("/candidates.json", include_in_schema=False)
+async def serve_candidates():
+    return FileResponse("candidates.json")
+
 
 
 @app.exception_handler(HTTPException)
