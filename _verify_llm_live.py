@@ -1,13 +1,22 @@
 """
 Phase 3 -- Throwaway Live Verification Script (NOT part of the permanent codebase)
 ==================================================================================
-Tests three critical assumptions against a REAL Gemini API call.
+Tests critical assumptions against a REAL Gemini API call, plus mock-verifies
+the sticky fallback path without burning quota.
+
+All live tests go through the REAL llm_client.generate() -> _build_contents()
+path, not hand-rolled reproductions.
+
+Usage:
+  $env:GEMINI_API_KEY = "your_key_here"
+  python _verify_llm_live.py
 """
 
 import os
 import sys
 import json
 import traceback
+from unittest.mock import MagicMock
 
 if sys.platform == "win32":
     sys.stdout.reconfigure(encoding="utf-8")
@@ -18,49 +27,44 @@ if not api_key:
     print("ERROR: Set GEMINI_API_KEY environment variable first.")
     sys.exit(1)
 
-from google import genai
-from google.genai import types
+# -- Initialize the REAL llm_client module (the code under test) --
+import llm_client
+from llm_client import LLMCallError
 from google.genai.errors import APIError
 
-print(f"google-genai SDK version: {genai.__version__ if hasattr(genai, '__version__') else 'unknown'}")
-print(f"API key loaded (length: {len(api_key)})")
+llm_client.init_client(api_key=api_key)
+print(f"llm_client initialized with real API key (length: {len(api_key)})")
+print(f"PRIMARY_MODEL = {llm_client.PRIMARY_MODEL}")
+print(f"FALLBACK_MODEL = {llm_client.FALLBACK_MODEL}")
 
-client = genai.Client(
-    api_key=api_key,
-    http_options=types.HttpOptions(timeout=15_000),
-)
+results = {}   # track pass/fail per test
 
-# Try models in priority order -- the plan says gemini-3.6-flash primary,
-# gemini-3.5-flash-lite fallback. Also try gemini-2.0-flash-lite as last resort.
-MODELS_TO_TRY = [
-    os.getenv("GEMINI_PRIMARY_MODEL", "gemini-3.6-flash"),
-    os.getenv("GEMINI_FALLBACK_MODEL", "gemini-3.5-flash-lite"),
-    "gemini-2.0-flash-lite",
-    "gemini-2.5-flash",
-]
 
-def build_contents(messages: list[dict]) -> list:
-    """Exact copy of llm_client.py _build_contents"""
-    if not messages:
-        messages = [{"role": "user", "content": "Begin."}]
-    if messages[0].get("role") != "user":
-        messages = [{"role": "user", "content": "(Interview in progress.)"}] + messages
-    contents = []
-    for msg in messages:
-        role = "user" if msg.get("role") == "user" else "model"
-        contents.append(types.Content(role=role, parts=[types.Part(text=msg["content"])]))
-    return contents
+# -- Minimal session stub matching what llm_client.generate() reads --
+class FakeSession:
+    """Mimics the two fields llm_client.generate() touches on SessionState."""
+    def __init__(self):
+        self.using_fallback = False
 
-# --- Test payloads ---
-messages_model_first = [
-    {"role": "model",  "content": "Tell me about your experience with Docker."},
-    {"role": "user",   "content": "I used Docker to containerize a Flask app. I wrote Dockerfiles and used docker-compose."},
-]
+
+# ===================================================================
+# TEST 1: Model-first messages through REAL llm_client.generate()
+# ===================================================================
+print("\n" + "=" * 70)
+print("TEST 1: Model-first messages through llm_client.generate()")
+print("        (calls _build_contents internally -- not hand-rolled)")
+print("=" * 70)
 
 system_prompt = (
     "You are a senior technical interviewer. Evaluate the candidate's answer "
     "about Docker containerization. Respond as JSON with the exact schema provided."
 )
+
+# Simulate the sliding-window-after-Q1 case: conversation opens on model-role
+messages_model_first = [
+    {"role": "model",  "content": "Tell me about your experience with Docker."},
+    {"role": "user",   "content": "I used Docker to containerize a Flask app. I wrote Dockerfiles and used docker-compose."},
+]
 
 TURN_RESPONSE_SCHEMA = {
     "type": "OBJECT",
@@ -79,168 +83,67 @@ TURN_RESPONSE_SCHEMA = {
     "required": ["evaluation", "decision", "reply"],
 }
 
-contents = build_contents(messages_model_first)
-print(f"\nContents roles after guard: {[c.role for c in contents]}")
-print(f"Contents texts: {[c.parts[0].text[:60] for c in contents]}")
+session = FakeSession()
 
-# ===================================================================
-# Find a working model first
-# ===================================================================
-print("\n" + "=" * 70)
-print("STEP 0: Finding a working model...")
-print("=" * 70)
-
-working_model = None
-for model_name in MODELS_TO_TRY:
-    print(f"\n  Trying {model_name}...", end=" ")
-    try:
-        test_config = types.GenerateContentConfig(
-            system_instruction="Say hello in JSON.",
-            response_mime_type="application/json",
-            response_schema={"type": "OBJECT", "properties": {"msg": {"type": "STRING"}}, "required": ["msg"]},
-        )
-        test_resp = client.models.generate_content(
-            model=model_name,
-            contents=[types.Content(role="user", parts=[types.Part(text="Hi")])],
-            config=test_config,
-        )
-        _ = json.loads(test_resp.text)
-        print(f"OK! Using {model_name}")
-        working_model = model_name
-        break
-    except Exception as e:
-        is_429 = (isinstance(e, APIError) and getattr(e, "code", None) == 429) or "429" in str(e)
-        is_404 = (isinstance(e, APIError) and getattr(e, "code", None) == 404) or "404" in str(e) or "not found" in str(e).lower()
-        if is_429:
-            print(f"QUOTA EXHAUSTED")
-        elif is_404:
-            print(f"MODEL NOT FOUND")
-        else:
-            print(f"ERROR: {type(e).__name__}: {str(e)[:100]}")
-
-if not working_model:
-    print("\n[FAIL] No working model found. All models are either exhausted or unavailable.")
-    print("Please wait for quota reset or check your API key billing.")
+try:
+    result = llm_client.generate(
+        system_prompt=system_prompt,
+        messages=messages_model_first,
+        response_schema=TURN_RESPONSE_SCHEMA,
+        session=session,
+    )
+    print(f"\n[PASS] TEST 1: Call through real llm_client.generate() succeeded.")
+    print(f"  Content ordering guard ran inside _build_contents (not hand-rolled).")
+    print(f"  No 400 about content ordering.")
+    print(f"\n[PASS] TEST 2: Plain-dict schema accepted by response_schema.")
+    print(f"  Schema had string 'type': 'OBJECT' -- no types.Schema conversion needed.")
+    print(f"\nReturned dict: {json.dumps(result, indent=2)}")
+    results["test1"] = True
+    results["test2"] = True
+except Exception as e:
+    print(f"\n[FAIL] {type(e).__name__}: {e}")
+    traceback.print_exc()
+    results["test1"] = False
+    results["test2"] = False
     sys.exit(1)
 
 # ===================================================================
-# TEST 1: Model-first contents + system_instruction
+# TEST 3: JSON shape validation
 # ===================================================================
 print("\n" + "=" * 70)
-print(f"TEST 1: Model-first messages + prepend guard (using {working_model})")
-print("=" * 70)
-
-config = types.GenerateContentConfig(
-    system_instruction=system_prompt,
-    response_mime_type="application/json",
-    response_schema=TURN_RESPONSE_SCHEMA,
-)
-
-try:
-    print(f"Calling {working_model} with plain-dict schema...")
-    response = client.models.generate_content(
-        model=working_model, contents=contents, config=config,
-    )
-    raw_text = response.text
-    schema_fix_needed = False
-    print(f"\n[PASS] TEST 1: No 400 error about content ordering!")
-    print(f"[PASS] TEST 2: Plain-dict schema accepted directly by response_schema!")
-    print(f"\nRaw response:\n{raw_text}")
-except Exception as e:
-    error_str = str(e)
-    is_429 = (isinstance(e, APIError) and getattr(e, "code", None) == 429) or "429" in error_str
-    
-    if is_429:
-        print(f"\n[FAIL] 429 quota hit even on {working_model}. Cannot proceed.")
-        sys.exit(1)
-    
-    # Distinguish schema error from content-ordering error
-    print(f"\n[FAIL] {type(e).__name__}: {error_str[:300]}")
-    
-    # Check if it's specifically a schema format issue
-    if "schema" in error_str.lower() and ("response_schema" in error_str.lower() or "invalid" in error_str.lower()):
-        print("\n>>> Trying types.Schema conversion...")
-        try:
-            eval_schema = types.Schema(
-                type=types.Type.OBJECT,
-                properties={
-                    "bucket": types.Schema(type=types.Type.STRING, enum=["missed", "partial", "strong"]),
-                    "rationale": types.Schema(type=types.Type.STRING),
-                },
-                required=["bucket", "rationale"],
-            )
-            full_schema = types.Schema(
-                type=types.Type.OBJECT,
-                properties={
-                    "evaluation": eval_schema,
-                    "decision": types.Schema(type=types.Type.STRING, enum=["follow_up", "advance"]),
-                    "reply": types.Schema(type=types.Type.STRING),
-                },
-                required=["evaluation", "decision", "reply"],
-            )
-            config2 = types.GenerateContentConfig(
-                system_instruction=system_prompt,
-                response_mime_type="application/json",
-                response_schema=full_schema,
-            )
-            response = client.models.generate_content(
-                model=working_model, contents=contents, config=config2,
-            )
-            raw_text = response.text
-            schema_fix_needed = True
-            print(f"[PASS] types.Schema works! llm_client.py NEEDS FIXING.")
-            print(f"\nRaw response:\n{raw_text}")
-        except Exception as e2:
-            print(f"[FAIL] types.Schema also failed: {e2}")
-            sys.exit(1)
-    else:
-        print("\n>>> Not a schema issue. Possibly content ordering or other API error.")
-        traceback.print_exc()
-        sys.exit(1)
-
-# ===================================================================
-# TEST 3: JSON deserialization + schema shape match
-# ===================================================================
-print("\n" + "=" * 70)
-print("TEST 3: JSON deserialization + schema shape validation")
+print("TEST 3: Schema shape validation on returned dict")
 print("=" * 70)
 
 try:
-    parsed = json.loads(raw_text)
-    print(f"[PASS] Valid JSON. Keys: {list(parsed.keys())}")
+    assert isinstance(result, dict), f"Expected dict, got {type(result)}"
+    assert "evaluation" in result, "Missing 'evaluation'"
+    assert "decision" in result, "Missing 'decision'"
+    assert "reply" in result, "Missing 'reply'"
 
-    assert "evaluation" in parsed, "Missing 'evaluation'"
-    assert "decision" in parsed, "Missing 'decision'"
-    assert "reply" in parsed, "Missing 'reply'"
-
-    ev = parsed["evaluation"]
+    ev = result["evaluation"]
     assert "bucket" in ev, "Missing evaluation.bucket"
     assert "rationale" in ev, "Missing evaluation.rationale"
     assert ev["bucket"] in ("missed", "partial", "strong"), f"Bad bucket: {ev['bucket']}"
-    assert parsed["decision"] in ("follow_up", "advance"), f"Bad decision: {parsed['decision']}"
-    assert isinstance(parsed["reply"], str) and len(parsed["reply"]) > 0
+    assert result["decision"] in ("follow_up", "advance"), f"Bad decision: {result['decision']}"
+    assert isinstance(result["reply"], str) and len(result["reply"]) > 0
 
-    print(f"[PASS] Schema shape matches perfectly!")
+    print(f"[PASS] Schema shape matches perfectly.")
     print(f"  evaluation.bucket   = {ev['bucket']}")
     print(f"  evaluation.rationale = {ev['rationale'][:120]}")
-    print(f"  decision            = {parsed['decision']}")
-    print(f"  reply               = {parsed['reply'][:120]}")
-except json.JSONDecodeError as e:
-    print(f"[FAIL] JSON parse failed: {e}")
-    sys.exit(1)
+    print(f"  decision            = {result['decision']}")
+    print(f"  reply               = {result['reply'][:120]}")
+    results["test3"] = True
 except AssertionError as e:
     print(f"[FAIL] Shape mismatch: {e}")
+    results["test3"] = False
     sys.exit(1)
 
 # ===================================================================
-# BONUS: Empty messages (Q1 opener case)
+# TEST 4: Empty messages through REAL llm_client.generate()
 # ===================================================================
 print("\n" + "=" * 70)
-print("BONUS: Empty messages list (Q1 opener case)")
+print("TEST 4: Empty messages (Q1 opener) through llm_client.generate()")
 print("=" * 70)
-
-contents_empty = build_contents([])
-print(f"Contents: {[c.parts[0].text for c in contents_empty]}")
 
 FIRST_QUESTION_SCHEMA = {
     "type": "OBJECT",
@@ -248,17 +151,123 @@ FIRST_QUESTION_SCHEMA = {
     "required": ["reply"],
 }
 
+session2 = FakeSession()
 try:
-    fq_config = types.GenerateContentConfig(
-        system_instruction="You are a technical interviewer. Welcome the candidate and ask about Docker. JSON only.",
-        response_mime_type="application/json",
+    result2 = llm_client.generate(
+        system_prompt="You are a technical interviewer. Welcome the candidate and ask about Docker. JSON only.",
+        messages=[],
         response_schema=FIRST_QUESTION_SCHEMA,
+        session=session2,
     )
-    resp2 = client.models.generate_content(model=working_model, contents=contents_empty, config=fq_config)
-    p2 = json.loads(resp2.text)
-    print(f"[PASS] Empty-messages works. Reply: {p2.get('reply', '')[:120]}")
+    assert "reply" in result2 and isinstance(result2["reply"], str)
+    print(f"[PASS] Empty-messages works through real generate().")
+    print(f"  reply = {result2['reply'][:120]}")
+    results["test4"] = True
 except Exception as e:
     print(f"[FAIL] {type(e).__name__}: {e}")
+    results["test4"] = False
+
+# ===================================================================
+# TEST 5: Sticky fallback (Decision #23) -- MOCKED, zero quota burn
+# ===================================================================
+print("\n" + "=" * 70)
+print("TEST 5: Sticky fallback via mock (no real API call)")
+print("        Verifies: 429 on primary -> using_fallback=True ->")
+print("        next call uses FALLBACK_MODEL string, not PRIMARY_MODEL")
+print("=" * 70)
+
+# First, verify we can construct the error correctly
+print("\n  Pre-check: APIError construction...")
+test_err = APIError(429, {"error": {"code": 429, "message": "test"}})
+print(f"    APIError(429, ...).code = {test_err.code}")
+print(f"    isinstance(test_err, APIError) = {isinstance(test_err, APIError)}")
+assert test_err.code == 429, f"Expected .code=429, got {test_err.code}"
+assert isinstance(test_err, APIError)
+print(f"    Pre-check passed.\n")
+
+mock_response = MagicMock()
+mock_response.text = json.dumps({
+    "evaluation": {"bucket": "partial", "rationale": "Mock rationale"},
+    "decision": "advance",
+    "reply": "Mock reply from fallback model.",
+})
+
+call_log = []
+
+def mock_generate_content(*, model, contents, config):
+    """First call to PRIMARY raises 429. All other calls succeed."""
+    call_log.append(model)
+    if model == llm_client.PRIMARY_MODEL and len(call_log) == 1:
+        # Simulate quota exhaustion on primary — uses correct constructor
+        raise APIError(429, {
+            "error": {
+                "code": 429,
+                "message": "RESOURCE_EXHAUSTED",
+                "status": "RESOURCE_EXHAUSTED",
+            }
+        })
+    return mock_response
+
+session3 = FakeSession()
+assert session3.using_fallback is False, "Precondition: starts as False"
+
+# Patch the actual client instance's generate_content method
+original_generate = llm_client._client.client.models.generate_content
+llm_client._client.client.models.generate_content = mock_generate_content
+
+try:
+    result3 = llm_client.generate(
+        system_prompt="test",
+        messages=[{"role": "user", "content": "test"}],
+        response_schema={"type": "OBJECT", "properties": {"reply": {"type": "STRING"}}, "required": ["reply"]},
+        session=session3,
+    )
+
+    # Verify: using_fallback flipped to True
+    assert session3.using_fallback is True, \
+        f"using_fallback should be True after 429, got {session3.using_fallback}"
+
+    # Verify: the fallback call actually used FALLBACK_MODEL
+    assert llm_client.FALLBACK_MODEL in call_log, \
+        f"Expected {llm_client.FALLBACK_MODEL} in call log, got {call_log}"
+
+    # Verify: primary was tried first
+    assert call_log[0] == llm_client.PRIMARY_MODEL, \
+        f"First call should be primary ({llm_client.PRIMARY_MODEL}), got {call_log[0]}"
+
+    # Verify: result came back successfully
+    assert result3["reply"] == "Mock reply from fallback model."
+
+    print(f"[PASS] Sticky fallback verified!")
+    print(f"  Call log: {call_log}")
+    print(f"  session.using_fallback = {session3.using_fallback}")
+    print(f"  1st call: {call_log[0]} (PRIMARY -- raised 429)")
+    print(f"  2nd call: {call_log[1]} (FALLBACK -- succeeded)")
+
+    # BONUS: verify stickiness -- next call should go DIRECTLY to fallback
+    call_log.clear()
+    session3_b = FakeSession()
+    session3_b.using_fallback = True   # already sticky from prior 429
+
+    result3b = llm_client.generate(
+        system_prompt="test",
+        messages=[{"role": "user", "content": "test"}],
+        response_schema={"type": "OBJECT", "properties": {"reply": {"type": "STRING"}}, "required": ["reply"]},
+        session=session3_b,
+    )
+    assert call_log[0] == llm_client.FALLBACK_MODEL, \
+        f"Sticky session should skip primary, got {call_log[0]}"
+    print(f"\n  Stickiness confirmed: with using_fallback=True, went directly to")
+    print(f"  {call_log[0]} without trying primary.")
+
+    results["test5"] = True
+
+except Exception as e:
+    print(f"[FAIL] Fallback test failed: {type(e).__name__}: {e}")
+    traceback.print_exc()
+    results["test5"] = False
+finally:
+    llm_client._client.client.models.generate_content = original_generate
 
 # ===================================================================
 # SUMMARY
@@ -266,17 +275,26 @@ except Exception as e:
 print("\n" + "=" * 70)
 print("VERIFICATION SUMMARY")
 print("=" * 70)
-print(f"Model used:  {working_model}")
-print(f"[PASS] TEST 1: Model-first messages + prepend guard -> no 400")
-if schema_fix_needed:
-    print(f"[FIX]  TEST 2: Plain-dict schema REJECTED -- types.Schema REQUIRED")
-    print(f"       ACTION: Update llm_client.py response_schema handling")
-else:
-    print(f"[PASS] TEST 2: Plain-dict schema accepted directly")
-print(f"[PASS] TEST 3: JSON deserializes to correct schema shape")
-print(f"[PASS] BONUS:  Empty-messages seed works for Q1 opener")
+
+all_passed = True
+for name, label in [
+    ("test1", "TEST 1: Model-first messages through REAL llm_client.generate()"),
+    ("test2", "TEST 2: Plain-dict schema accepted directly by response_schema"),
+    ("test3", "TEST 3: Response deserializes to correct {evaluation, decision, reply} shape"),
+    ("test4", "TEST 4: Empty messages through REAL llm_client.generate()"),
+    ("test5", "TEST 5: Sticky fallback: 429 -> using_fallback=True -> FALLBACK_MODEL"),
+]:
+    status = "[PASS]" if results.get(name) else "[FAIL]"
+    if not results.get(name):
+        all_passed = False
+    print(f"{status} {label}")
+
 print()
-if schema_fix_needed:
-    print("CONCLUSION: Need to fix schema handling in llm_client.py before proceeding.")
+if all_passed:
+    print("CONCLUSION: All llm_client.py assumptions VERIFIED.")
+    print("            Content guards, schema handling, and fallback logic all confirmed.")
 else:
-    print("CONCLUSION: All llm_client.py assumptions VERIFIED. Safe to wire prompts.py.")
+    failed = [k for k, v in results.items() if not v]
+    print(f"CONCLUSION: {len(failed)} test(s) FAILED: {failed}")
+    print("            DO NOT proceed until failures are resolved.")
+    sys.exit(1)
