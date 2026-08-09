@@ -32,7 +32,8 @@ def generate(session) -> FeedbackResponse:
             response_schema=FEEDBACK_SCHEMA, session=session,
         )
         return FeedbackResponse(**result)
-    except llm_client.LLMCallError:
+    except llm_client.LLMCallError as exc:
+        print(f"[LLM_FALLBACK_WARNING] Candidate={session.candidate.member.id} in feedback_synthesizer: {exc}")
         return _deterministic_fallback(session)
 
 

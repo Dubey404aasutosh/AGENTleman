@@ -59,7 +59,8 @@ def process_turn(session: SessionState, candidate_message: str) -> InterviewResp
         evaluation = llm_response["evaluation"]
         decision = llm_response["decision"]
         reply = llm_response["reply"]
-    except llm_client.LLMCallError:
+    except llm_client.LLMCallError as exc:
+        print(f"[LLM_FALLBACK_WARNING] Candidate={session.candidate.member.id} in process_turn: {exc}")
         evaluation = {"bucket": "partial", "rationale": "Technical issue — moved to next topic."}
         decision = "advance"
         reply = f"Thank you for your thoughts on {current_topic.title}. "
@@ -123,7 +124,8 @@ def generate_first_question(session: SessionState) -> str:
             response_schema=FIRST_QUESTION_SCHEMA, session=session,
         )
         reply = llm_response["reply"]
-    except llm_client.LLMCallError:
+    except llm_client.LLMCallError as exc:
+        print(f"[LLM_FALLBACK_WARNING] Candidate={session.candidate.member.id} in generate_first_question: {exc}")
         name = session.candidate.member.name
         first_tool = first_topic.tools[0] if first_topic.tools else "this topic"
         reply = (f"Welcome {name}! Let's begin your technical interview. On Day "
